@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour {
 		if (Input.GetKeyDown (KeyCode.Alpha1)) {
 
 			unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 8, 3, UnitManager.Faction.Ally);
+			unitManager.CreateUnit (UnitManager.UnitName.ArcherUnit, 9, 3, UnitManager.Faction.Ally);
 			unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 8, 7, UnitManager.Faction.Enemy);
 			/*
 			for(int i = 0; i < 4; i++){

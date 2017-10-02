@@ -26,12 +26,11 @@ public class MapManager : MonoBehaviour {
 
 	Node[,] NodeList;
 	List<Node> currentPath = null; //for pathfinding
+	List<Tile> validTiles; //used for setting valid tiles 
 
 
 	[SerializeField] int mapSizeX = 20;
 	[SerializeField] int mapSizeY = 20;
-	public GameObject testGObj;
-	public Tile testTileS;
 	[SerializeField] protected GameObject tileEmpty;
 	[SerializeField] protected GameObject tileGrasslandPrefab;
 	[SerializeField] protected GameObject tileForestPrefab;
@@ -51,6 +50,8 @@ public class MapManager : MonoBehaviour {
 		GenerateMapVisuals ();
 
 		GeneratePathfindingGraph ();
+
+		validTiles = new List<Tile> ();
 
 	}
 
@@ -168,12 +169,15 @@ public class MapManager : MonoBehaviour {
 	}
 
 	public bool TileIsOccupied(int x, int y){
-		return tileArray [x, y].getIsOccupied ();
+		return tileArray [x, y].isOccupied ();
 	}
 
 	public bool UnitCanEnterTile(int x, int y){
 		//Here we can test a unit's walk/hover
-		return tileArray [x, y].getIsWalkable();
+		if (tileArray [x, y].isOccupied ())
+			return false;
+
+		return tileArray [x, y].isWalkable();
 	}
 
 	public float CostToEnterTile(int sourceX, int sourceY, int targetX, int targetY){
@@ -292,25 +296,71 @@ public class MapManager : MonoBehaviour {
 		}
 	}
 
-	public void showValidMoves(Tile tile, int range, string color){
+	//gives a list of tiles to be highlighted (within range of the given tile)
+	public void showValidMoves(GameObject myUnit, Tile tile, int range, string type){
 		List<Node> validMoves = new List<Node> ();
-		if (tile.getIsOccupied ())
-			tile.setHighlighted (true, "Red");
-		else
-			tile.setHighlighted(true, color);
+
+		if (!tile.isOccupied ()) {
+			validTiles.Add(tile); //add my current tiles
+		} else {
+			if (type == "Move" && tile.getOccupyingUnit () == myUnit)
+				validTiles.Add(tile); //add my current tiles
+			if (type == "Attack"){
+				if(tile.getOccupyingUnit().GetComponent<Unit>().faction != myUnit.GetComponent<Unit>().faction
+					|| tile.getOccupyingUnit() == myUnit)
+					validTiles.Add (tile);
+				
+			}
+		}
 
 		Node source = NodeList [tile.getTileX (), tile.getTileY ()];
 		validMoves.Add (source);
 
 		for (int i = 0; i < source.neighbours.Count; i++) {
 			//recursive into others while taking away movement points
-			int nextMoveCost = range - (int)CostToEnterTile (source.x, source.y, source.neighbours [i].x, source.neighbours [i].y);
-			if (nextMoveCost >= 0 && !validMoves.Contains (source.neighbours [i]))
-				showValidMoves (tileArray[source.neighbours [i].x, source.neighbours [i].y], nextMoveCost, color);
+
+
+			int nextMoveCost;
+			if (type == "Move")
+				nextMoveCost = range - (int)CostToEnterTile (source.x, source.y, source.neighbours [i].x, source.neighbours [i].y);
+			else if (type == "Attack")
+				nextMoveCost = range - 1;
+			else {
+				Debug.Log ("showValidMoves: Not a valid type - " + type);
+				break;
+			}
+
+
+			if (nextMoveCost >= 0 && !validMoves.Contains (source.neighbours [i])) {
+				showValidMoves (myUnit, tileArray [source.neighbours [i].x, source.neighbours [i].y], nextMoveCost, type);
+			}
 		}
 	}
 
-	public void resetMap(){
+	public void MoveUnitTowards(Tile tile, GameObject selectedUnit){
+		GeneratePathTo (selectedUnit, tile);
+		//if you have enough movement...
+		if (selectedUnit.GetComponent<Unit> ().hasEnoughMove()) {
+
+			//change occupied space of the selected unit before moving
+			tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
+				selectedUnit.GetComponent<Unit> ().getTileY ()].setIsOccupied (false, null);
+			//our new tile is now our selected one
+			tile.setIsOccupied (true, selectedUnit);
+			selectedUnit.GetComponent<Unit>().setState (Unit.State.Done);
+			return;
+		}
+	}
+
+	public void cleanValidMovesTilesList(){
+		validTiles.Clear ();
+	}
+
+	public List<Tile> getValidMovesTilesList(){
+		return validTiles;
+	}
+
+	public void cleanMap(){
 		for (int x = 0; x < mapSizeX; x++) {
 			for (int y = 0; y < mapSizeY; y++) {
 				//tileArray [x, y].setIsSelected (false);
@@ -327,4 +377,7 @@ public class MapManager : MonoBehaviour {
 
 		return num += (Mathf.Abs (tile2.getTileX () - tile1.getTileX ()) + Mathf.Abs (tile2.getTileY () - tile1.getTileY ()));
 	}
+
+
+
 }

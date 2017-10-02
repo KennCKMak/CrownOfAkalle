@@ -18,18 +18,19 @@ public class CombatManager : MonoBehaviour {
 		}*/
 	}
 
-	void StartCombat(GameObject AttackUnit, GameObject DefendUnit){
-		Unit Attacker = AttackUnit.GetComponent<Unit> ();
-		Unit Defender = DefendUnit.GetComponent<Unit>(); 
+	public void RequestCombatResolve(Unit initiator, Unit target, int dist){
+		Debug.Log ("dist = " + dist);
+		if (dist == 1) {
+			Debug.Log ("Resolve melee");
+			ResolveCombatMelee (initiator, target);
+		}
+		else if (dist == 2) {
+			Debug.Log ("Resolve Ranged");
+			ResolveCombatRanged (initiator, target);
+		} else
+			Debug.Log ("Other");
 
-		//TODO: Check if they are dead or not FIRST before engaging
-
-		if (!Attacker.unitIsRanged ())
-			ResolveCombatMelee (Attacker, Defender);
-		else
-			ResolveCombatRanged (Attacker, Defender);
-
-
+		initiator.setState (Unit.State.Done);
 	}
 
 	void ResolveCombatMelee(Unit Attacker, Unit Defender){
@@ -39,8 +40,10 @@ public class CombatManager : MonoBehaviour {
 		Defender.takeDamage (damage);
 
 		//NOW IT"S TIME FOR DEFENDER TO ATTACK
-		damage = CalculateDamage(Defender, Attacker, "Melee");
-		Attacker.takeDamage (damage);
+		if (Defender.isMelee ()) {
+			damage = CalculateDamage (Defender, Attacker, "Melee");
+			Attacker.takeDamage (damage);
+		}
 	}
 
 	void ResolveCombatRanged(Unit Attacker, Unit Defender){
@@ -49,7 +52,7 @@ public class CombatManager : MonoBehaviour {
 		damage = CalculateDamage (Attacker, Defender, "Ranged");
 		Defender.takeDamage (damage);
 
-		if (Defender.unitIsRanged ()) {
+		if (Defender.isRanged ()) {
 			damage = CalculateDamage (Defender, Attacker, "Ranged");
 			Attacker.takeDamage (damage);
 		}
@@ -63,7 +66,7 @@ public class CombatManager : MonoBehaviour {
 			totalPool = Defender.getMeleeExpertise () + Attacker.getMeleeExpertise ();
 		else if (combatType == "Ranged") { //for ranged, roll against 100 for chance
 			totalPool = Attacker.getRangedExpertise ();
-			if (Defender.unitIsShielded ()) {
+			if (Defender.isShielded ()) {
 				totalPool -= 25; //-25% chance to hit if shielded
 			}
 		} else {
@@ -85,7 +88,7 @@ public class CombatManager : MonoBehaviour {
 				}
 			}
 
-			if (combatType == "Ranged") {
+			else if (combatType == "Ranged") {
 				rand = Random.Range (0, 100 + 1); //rolls against 100 chance
 				if (rand > Attacker.getRangedExpertise ()) {
 					successfulHits++;
@@ -96,9 +99,9 @@ public class CombatManager : MonoBehaviour {
 		totalDamage = successfulHits * (Attacker.getMeleeAttack () - Defender.getDefense ());
 
 		//modifiers
-		if (Defender.unitIsMounted () && Attacker.getMeleeWeaponType () == Unit.MeleeWeaponType.Spear)
+		if (Defender.isMounted () && Attacker.getMeleeWeaponType () == Unit.MeleeWeaponType.Spear)
 			totalDamage *= 2;
-		if (Defender.unitIsArmoured ()) {
+		if (Defender.isArmoured ()) {
 			if (Attacker.getMeleeWeaponType () == Unit.MeleeWeaponType.Mace || Attacker.getRangedWeaponType () == Unit.RangedWeaponType.Crossbow)
 				totalDamage *= 2;
 		}

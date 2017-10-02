@@ -17,14 +17,14 @@ using UnityEngine;
 public class Unit : MonoBehaviour {
 
 
-	public enum State { Ready, Choose, Done, Dead }
+	public enum State { Ready, ChooseMove, ChooseAction, Action, Attack, Done, Dead }
 	[SerializeField] protected State unitState;
 	[SerializeField] protected int unitID;
 	[HideInInspector] protected GameObject visualPrefab;
 
-	public bool isSelected;
-	public Shader shaderNormal;
-	public Shader shaderOutline;
+	public bool selected;
+	[HideInInspector]public Shader shaderNormal;
+	[HideInInspector]public Shader shaderOutline;
 
 	[SerializeField] protected int tileX;
 	[SerializeField] protected int tileY;
@@ -34,7 +34,7 @@ public class Unit : MonoBehaviour {
 	[HideInInspector]public UnitManager unitManager;
 	public UnitManager.Faction faction;
 
-	[HideInInspector] public ClickManager clickManager;
+	[HideInInspector] public CombatManager combatManager;
 
 	//STATS FOR THE UNIT
 	public enum MeleeWeaponType { None, Sword, Spear, Mace };
@@ -42,7 +42,7 @@ public class Unit : MonoBehaviour {
 
 	[SerializeField]protected int Speed; //How many tiles
 	[SerializeField]protected float remainingMovement;
-	protected bool isMoving = false;
+	protected bool moving = false;
 
 	[SerializeField]protected int UnitSize; 
 	[SerializeField]protected int MaxUnitSize;
@@ -50,11 +50,17 @@ public class Unit : MonoBehaviour {
 	[SerializeField]protected int Health;
 	[SerializeField]protected int MaxHealth;
 	[SerializeField]protected int Defense;
-	[SerializeField]protected bool Shielded;
+	[SerializeField]protected bool shielded;
 
-	[SerializeField]protected bool isMounted;
-	[SerializeField]protected bool isArmoured;
-	[SerializeField]protected bool isRanged;
+	[SerializeField]protected bool mounted;
+	[SerializeField]protected bool armoured;
+
+
+	[SerializeField]protected Unit target = null;
+	[SerializeField]protected bool melee;
+	[SerializeField]protected bool ranged;
+	[SerializeField]protected bool attacking;
+	protected int dist; //dist from you to target, given from click
 
 	[SerializeField]protected MeleeWeaponType MeleeWeapon;
 	[SerializeField]protected int MeleeExpertise;
@@ -76,23 +82,16 @@ public class Unit : MonoBehaviour {
 
 
 	void Awake(){
-		checkDefense (); //setting armoured tag
-		if(unitIsArmoured() || unitIsShielded())
-			setSpeed (getSpeed () - 1);
-		if (unitIsMounted ())
-			setSpeed (getSpeed () * 2);
-		if (getDefense () > 20)
-			setSpeed (getSpeed () - 1);
-		
-		NewTurn ();
-		setHealth (MaxHealth);
+
 	}
 
 	void Update(){
 		if (currentPath != null) {
 			drawCurrentPath ();
 		}
-		Move ();
+		if (unitState == State.Action){
+			Move ();
+		}
 
 		if (!isAlive()) {
 			Debug.Log ("Unit dead");
@@ -106,6 +105,24 @@ public class Unit : MonoBehaviour {
 
 	}
 
+	public void SetupUnit(){
+		
+		checkDefense (); //setting armoured tag
+		if(isArmoured() || isShielded())
+			setSpeed (getSpeed () - 1);
+		if (isMounted ())
+			setSpeed (getSpeed () * 2);
+		if (getDefense () > 20)
+			setSpeed (getSpeed () - 1);
+
+		if (MeleeWeapon != MeleeWeaponType.None)
+			melee = true;
+		if (RangedWeapon != RangedWeaponType.None)
+			ranged = true;
+
+		setHealth (MaxHealth);
+		NewTurn ();
+	}
 
 	//________UNIT STATE_______//
 	public void setState(State newState){ //used to access the other states of units
@@ -134,13 +151,13 @@ public class Unit : MonoBehaviour {
 
 
 	public void setIsSelected(bool b){
-		isSelected = b;
+		selected = b;
 		setOutline (b);
 
 	}
 
-	public bool getIsSelected(){
-		return isSelected;
+	public bool isSelected(){
+		return selected;
 	}
 
 	public GameObject getVisualPrefab(){
@@ -228,16 +245,29 @@ public class Unit : MonoBehaviour {
 		if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (getTileX (), getTileY ())) < 0.02f) {
 			MoveNextTile ();
 		}
+
+
+
+		if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (getTileX (), getTileY ())) < 0.01f && currentPath == null) {
+			if (!attacking)
+				unitState = State.Done;
+			else if(attacking) {
+				Debug.Log ("Here I am");
+				unitState = State.Attack;
+				combatManager.RequestCombatResolve (this, target, dist);
+			}
+		}
+		else
+			transform.position = Vector3.MoveTowards (transform.position, map.TileCoordToWorldCoord (getTileX (), getTileY ()), Speed / 2 * Time.deltaTime);
 		
-		transform.position = Vector3.MoveTowards (transform.position, map.TileCoordToWorldCoord (getTileX(), getTileY()), Speed/2 * Time.deltaTime);
 	}
 
-	public bool getIsMoving(){
-		return isMoving;
+	public bool isMoving(){
+		return moving;
 	}
 
 	public void setIsMoving(bool b){
-		isMoving = b;
+		moving = b;
 	}
 
 	void endPath(){
@@ -334,45 +364,77 @@ public class Unit : MonoBehaviour {
 	}
 
 	//_____MODIFIERS, EXPERTISE & DAMAGE_____//
-	public bool unitIsShielded(){
-		return Shielded;
+	public bool isShielded(){
+		return shielded;
 	}
 
-	public void setUnitIsShielded(bool b){
-		Shielded = b;
+	public void setIsShielded(bool b){
+		shielded = b;
 	}
 
 
-	public bool unitIsMounted(){
-		return isMounted;
+	public bool isMounted(){
+		return mounted;
 	}
 
-	public void setUnitIsMounted(bool b){
-		isMounted = b;
+	public void setIsMounted(bool b){
+		mounted = b;
 	}
 
-	public bool unitIsArmoured(){
-		return isArmoured;
+	public bool isArmoured(){
+		return armoured;
 	}
 
-	public void setUnitIsArmoured(bool b){
-		isArmoured = b;
+	public void setIsArmoured(bool b){
+		armoured = b;
 	}
 
 	public void checkDefense(){
 		if (getDefense () > 20)
-			setUnitIsArmoured (true);
+			setIsArmoured (true);
 	}
 
-	public bool unitIsRanged(){
-		return isRanged;
+	public bool isMelee(){
+		return melee;
 	}
 
-	public void setUnitIsRanged(bool b){
-		isRanged = b;
+	public void setIsMelee(bool b){
+		melee = b;
 	}
 
+	public bool isRanged(){
+		return ranged;
+	}
 
+	public void setIsRanged(bool b){
+		ranged = b;
+	}
+
+	//ATTACKING
+	public bool isAttacking(){
+		return attacking;
+	}
+
+	public void setIsAttacking(bool b){
+		attacking = b;
+	} 
+
+	public void setTarget(Unit targetUnit){
+		target = targetUnit;
+	}
+
+	public Unit getTarget(){
+		return target;
+	}
+
+	public void setDist(int num){
+		dist = num;
+	}
+
+	public int getDist(int num){
+		return dist;
+	}
+	
 
 	//MELEE
 	public void setMeleeWeaponType(MeleeWeaponType newMeleeWeapon){
@@ -400,7 +462,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	//RANGED
-	public void setRangedeWeaponType(RangedWeaponType newRangedWeapon){
+	public void setRangedWeaponType(RangedWeaponType newRangedWeapon){
 		RangedWeapon = newRangedWeapon;
 	}
 
@@ -422,6 +484,15 @@ public class Unit : MonoBehaviour {
 
 	public int getRangedAttack(){
 		return RangedAttack;
+	}
+
+	public int getWeaponRange(){
+		int num = 0;
+		if (MeleeWeapon != MeleeWeaponType.None)
+			num = 1;
+		if (RangedWeapon != RangedWeaponType.None)
+			num = 2;
+		return num;
 	}
 
 }

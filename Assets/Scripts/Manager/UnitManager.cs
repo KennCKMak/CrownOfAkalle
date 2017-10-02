@@ -14,10 +14,12 @@ public class UnitManager : MonoBehaviour {
 
 	public GameObject TemplateUnitPrefab;
 	public GameObject SwordsmanUnitPrefab;
+	public GameObject ArcherUnitPrefab;
 
 	public enum UnitName {
 		TemplateUnit,
-		SwordsmanUnit
+		SwordsmanUnit,
+		ArcherUnit
 	}
 
 	public enum Faction{
@@ -33,7 +35,7 @@ public class UnitManager : MonoBehaviour {
 
 
 	MapManager mapManager;
-	ClickManager clickManager;
+	CombatManager combatManager;
 
 	protected Shader shaderStandard;
 	protected Shader shaderOutline;
@@ -41,7 +43,7 @@ public class UnitManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		mapManager = GetComponent<MapManager> ();	
-		clickManager = GetComponent<ClickManager> ();
+		combatManager = GetComponent<CombatManager> ();
 
 
 		ArraySize = 20;
@@ -87,12 +89,14 @@ public class UnitManager : MonoBehaviour {
 				unitScript.shaderOutline = shaderOutline;
 				//setting script values
 				unitScript.map = mapManager;
-				unitScript.clickManager = clickManager;
+				unitScript.combatManager = combatManager;
 				unitScript.unitManager = this;
 				//setting ID-Array relation
 				unitObjArray [newID] = newUnit;
 				unitArray [newID] = unitScript;
 				unitScript.setUnitID (newID);
+
+				unitScript.SetupUnit ();
 
 				loopRunning = false;
 			}
@@ -117,6 +121,9 @@ public class UnitManager : MonoBehaviour {
 
 		case UnitName.SwordsmanUnit:
 			prefab = SwordsmanUnitPrefab;
+			break;
+		case UnitName.ArcherUnit:
+			prefab = ArcherUnitPrefab;
 			break;
 		default:
 			prefab = TemplateUnitPrefab;

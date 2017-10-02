@@ -15,14 +15,14 @@ public class Tile : MonoBehaviour {
 
 	public GameObject tileVisualPrefab;
 
-	public bool isOccupied = false;
+	public bool occupied = false;
 	public GameObject occupyingUnit;
 
-	public bool isWalkable = true;
+	public bool walkable = true;
 	public float movementCost = 1;
 
 
-	public bool isSelected;
+	public bool selected;
 	public Shader shaderNormal;
 	public Shader shaderOutline;
 
@@ -56,15 +56,15 @@ public class Tile : MonoBehaviour {
 	public void Setup(){
 		switch (tileType) {
 		case TileType.Grassland:
-			isWalkable = true;
+			walkable = true;
 			movementCost = 1;
 			break;
 		case TileType.Forest:
-			isWalkable = true;
+			walkable = true;
 			movementCost = 2;
 			break;
 		case TileType.Mountain:
-			isWalkable = false;
+			walkable = false;
 			movementCost = Mathf.Infinity;
 			break;
 		default:
@@ -106,8 +106,8 @@ public class Tile : MonoBehaviour {
 		return tileVisualPrefab;
 	}
 
-	public bool getIsWalkable(){
-		return isWalkable;
+	public bool isWalkable(){
+		return walkable;
 	}
 
 	public float getMovementCost(){
@@ -119,7 +119,7 @@ public class Tile : MonoBehaviour {
 	}
 
 	public void setIsWalkable(bool b){
-		isWalkable = b;
+		walkable = b;
 	}
 
 	public void ShowColor(string yes){
@@ -127,13 +127,13 @@ public class Tile : MonoBehaviour {
 	}
 
 	public void setIsOccupied(bool b, GameObject unit){
-		isOccupied = b;
+		occupied = b;
 		occupyingUnit = unit;
 		//setIsSelected (b);
 	}
 
-	public bool getIsOccupied(){
-		return isOccupied;
+	public bool isOccupied(){
+		return occupied;
 	}
 
 	public GameObject getOccupyingUnit(){
@@ -151,13 +151,13 @@ public class Tile : MonoBehaviour {
 
 
 	public void setIsSelected(bool b){
-		isSelected = b;
+		selected = b;
 		setOutline (b);
 
 	}
 
-	public bool getIsSelected(){
-		return isSelected;
+	public bool isSelected(){
+		return selected;
 	}
 
 	public void setHighlighted(bool b, string color){

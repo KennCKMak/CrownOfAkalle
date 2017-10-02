@@ -23,13 +23,14 @@ public class ClickManager : MonoBehaviour {
 
 	public GameObject selectedUnit;
 	public Tile selectedTile;
-	//public Tile chosenTile;
+	[SerializeField] private List<Tile> validTilesList; //used for highlighting movement
+	public Tile chosenTile = null; //where the unit will move
 
-	public MapManager mapManager;
-	public UnitManager unitManager;
+	[HideInInspector] public MapManager mapManager;
+	[HideInInspector] public UnitManager unitManager;
 
 	private GameObject Hologram;
-	private bool hasHologram = false;
+	private bool isHologram = false;
 
 	// Use this for initialization
 	void Start () {
@@ -68,135 +69,162 @@ public class ClickManager : MonoBehaviour {
 		//NO UNIT SELECTED
 		if (selectedUnit == null) {
 			//can we select this unit?
-			if (tile.getIsOccupied ()){
-				if (tile.getOccupyingUnit ().GetComponent<Unit> ().getState () == Unit.State.Ready) {
+			if (tile.isOccupied ()){
+				switch (tile.getOccupyingUnit ().GetComponent<Unit> ().getState ()) {
+				case (Unit.State.Ready):
 					Debug.Log ("Selecting new unit");
+					chosenTile = null;
 					SelectUnit (tile.getOccupyingUnit ());
-					mapManager.showValidMoves (tile, selectedUnit.GetComponent<Unit> ().getSpeed(), "Blue");
-					return;
+
+					selectedUnit.GetComponent<Unit> ().setState (Unit.State.ChooseMove);
+
+					//highlight moves of our unit
+					mapManager.cleanValidMovesTilesList ();
+					mapManager.showValidMoves (selectedUnit, tile, selectedUnit.GetComponent<Unit> ().getSpeed (), "Move");
+					validTilesList = mapManager.getValidMovesTilesList (); //retrieve list of tiles
+					HighlightTiles ("Blue"); //of valid tiles list
+
+					break;
+				default:
+					Debug.Log ("Unit State: " + tile.getOccupyingUnit ().GetComponent<Unit> ().getState ());
+					break;
 				}
+
+
+
 			} else {
 				//tile not occupied. can't do anything...
 				return;
 			}
+			return;
 		}
 
-		//UNIT ALREADY SELECTED
 		if (selectedUnit != null) {
 			Unit.State unitState = selectedUnit.GetComponent<Unit> ().getState ();
+			switch(unitState){
+
 			//MOVING
+			case (Unit.State.ChooseMove):
+				if(validTilesList.Contains(tile)){
+					//if (!tile.isOccupied () && ) {
+						
+						chosenTile = tile;
 
-			//Nothing on the tile?
-			if (!tile.getIsOccupied ()) {
-				if (unitState == Unit.State.Ready) {
-					Debug.Log ("Tile not occupied: Moving");
-					//map to new tile
-					mapManager.GeneratePathTo (selectedUnit, tile);
-					//if you have enough movement...
-					if (selectedUnit.GetComponent<Unit> ().hasEnoughMove()) {
+						RemoveHighlight ();
+						mapManager.cleanValidMovesTilesList (); //removes old map manager
+						mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
+							//this one sets the list again
+						validTilesList = mapManager.getValidMovesTilesList (); //retrieve list of tiles
 
-						//change occupied space of the selected unit before moving
-						mapManager.tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
-							selectedUnit.GetComponent<Unit> ().getTileY ()].setIsOccupied (false, null);
-						mapManager.tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
-							selectedUnit.GetComponent<Unit> ().getTileY ()].setIsSelected (false);
+						HighlightTiles ("Red"); //of valid tiles list, do...
+							selectedUnit.GetComponent<Unit>().setState(Unit.State.ChooseAction);
+					//} else if (tile.isOccupied() && tile.getOccupyingUnit() == selectedUnit()){
+						//chosenTile = tile;
+					//}
 
-						//our new tile is now our selected one
-						tile.setIsOccupied (true, selectedUnit);
-						selectedTile = tile;
-
-						//removes the fake hologram
-						DestroyHologram ();
-						//remove highlighted tiles
-						mapManager.resetMap ();
-						return;
-						//Deselect ();
-					} else {
-						Debug.Log ("Not enough movement");
-						selectedUnit.GetComponent<Unit> ().setCurrentPath (null);
-					}
-					//if your remaning movement is equal to paths amount, deselct this unit
-					return;
 				}
-			}
+				break;
+				//ACTION
+			case(Unit.State.ChooseAction):
+				if (validTilesList.Contains (tile)) {
+					//Click self, end movement without attacking
+					if (tile == chosenTile) {
+						mapManager.MoveUnitTowards (chosenTile, selectedUnit);
+						selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
+						DeselectUnit ();
 
 
-
-			//We have a unit, and we just clicked on another unit
-			if (tile.getIsOccupied()) {
-				if (tile.getOccupyingUnit () == selectedUnit) {
-					//Deselecting if we clicked on ourselves...
-					Debug.Log("Moved to my own location");
-				} else {
-					if (unitState == Unit.State.Ready) {
-						Debug.Log ("Trying to attack another thing");
+					} else if (tile.isOccupied () && tile.getOccupyingUnit() != selectedUnit) {
+						//check if we clicked on ally or friendly...
 						switch (tile.getOccupyingUnit ().GetComponent<Unit> ().faction) {
 						case UnitManager.Faction.Enemy:
-							Debug.Log ("Targeted enemy enemy");
-
+							Debug.Log ("Targeted enemy");
 							//Calculate weapon range
-							int dist = mapManager.GetTileDistance (tile, selectedTile);
-							Debug.Log ("Dist = " + dist);
-							if (dist == 1 && selectedUnit.GetComponent<Unit>().getMeleeWeaponType() != Unit.MeleeWeaponType.None) {
-								Debug.Log ("Initiating Melee attack");
-							} else if (dist == 2 && selectedUnit.GetComponent<Unit> ().getRangedWeaponType () != Unit.RangedWeaponType.None) {
-								Debug.Log ("Initiating Ranged Attack");
+							int dist = mapManager.GetTileDistance (tile, chosenTile);
+							if (dist == 1 && selectedUnit.GetComponent<Unit> ().isMelee()) {
+								selectedUnit.GetComponent<Unit> ().setIsAttacking(true);
+								selectedUnit.GetComponent<Unit> ().setTarget (tile.getOccupyingUnit ().GetComponent<Unit>());
+								selectedUnit.GetComponent<Unit> ().setDist (dist);
+
+
+								mapManager.MoveUnitTowards (chosenTile, selectedUnit);
+								selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
+								DeselectUnit ();
+
+
+							} else if (dist == 2 && selectedUnit.GetComponent<Unit> ().isRanged()) {
+								selectedUnit.GetComponent<Unit> ().setIsAttacking(true);
+								selectedUnit.GetComponent<Unit> ().setTarget (tile.getOccupyingUnit ().GetComponent<Unit>());
+								selectedUnit.GetComponent<Unit> ().setDist (dist);
+
+
+								mapManager.MoveUnitTowards (chosenTile, selectedUnit);
+								selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
+								DeselectUnit ();
+
+
 							} else {
-								Debug.Log ("Failed to attack!");
+								Debug.Log ("Failed to attack, dist = " + dist);
+								selectedUnit.GetComponent<Unit> ().setIsAttacking(false);
+								selectedUnit.GetComponent<Unit> ().setTarget (null);
 							}
 
-
 							break;
-
-
 						case UnitManager.Faction.Ally:
 							Debug.Log ("Hit Ally");
 							break;
-
-
-						default:
+						default:  //end of checking what enemy we hit
 							Debug.Log ("Weird tag hit");
-							break;
+							break; 
 						}
+
+					} else {
+						Debug.Log ("Selected an empty attack space...");
 					}
-				} 
-				return;
-
+				}
+				break;
+			default: //end of checking our selected unit's state.
+				break;
 			}
-
+			return;
 		}
-
-
-
 	}
 		
 
-	public void DrawHologram(){
-		if (!hasHologram) {
-			Debug.Log ("Spawning hologram");
-			GameObject holo = Instantiate (selectedUnit.GetComponent<Unit> ().getVisualPrefab (), Hologram.transform.position, Quaternion.identity) as GameObject;
+	public void StartHologram(){
+		/*if (!isHologram) {
+			/*GameObject holo = Instantiate (selectedUnit.GetComponent<Unit> ().getVisualPrefab (), Hologram.transform.position, Quaternion.identity) as GameObject;
 			holo.GetComponent<Renderer> ().material.shader = Shader.Find ("Unlit/Transparent"); 
 			holo.transform.parent = Hologram.transform;
-			hasHologram = true;
-		}
+
+
+			isHologram = true;
+		}*/
+		isHologram = true;
 	}
 
 	public void MoveHologram(){
-		if(selectedTile)
-			Hologram.transform.position = mapManager.TileCoordToWorldCoord (selectedTile.getTileX (), selectedTile.getTileY ());
+		if (selectedTile && !chosenTile && validTilesList.Contains(selectedTile))
+			//Hologram.transform.position = mapManager.TileCoordToWorldCoord (selectedTile.getTileX (), selectedTile.getTileY ());
+			selectedUnit.transform.position = mapManager.TileCoordToWorldCoord (selectedTile.getTileX (), selectedTile.getTileY ());
+			
 	}
 
-	public void DestroyHologram(){
-		if (Hologram.transform.childCount > 0) {
+	public void StopHologram(){
+		/*if (Hologram.transform.childCount > 0) {
 			Destroy (Hologram.transform.GetChild (0).gameObject);
-			hasHologram = true;
-		}
+			isHologram = false;
+		}*/
+
+		selectedUnit.transform.position = mapManager.TileCoordToWorldCoord (
+			selectedUnit.GetComponent<Unit>().getTileX (), selectedUnit.GetComponent<Unit>().getTileY ());
+		isHologram = false;
 	}
 
 	public void SelectUnit(GameObject unit){
 		unit.GetComponent<Unit> ().setIsSelected (true);
 		selectedUnit = unit;
-		DrawHologram ();
+		StartHologram ();
 	}
 
 	public void SelectTile(Tile tile){
@@ -211,11 +239,21 @@ public class ClickManager : MonoBehaviour {
 
 	public void DeselectUnit(){
 		if (selectedUnit != null) {
+			StopHologram ();
+
+
 			selectedUnit.GetComponent<Unit> ().setIsSelected (false);
+			Unit.State unitState = selectedUnit.GetComponent<Unit> ().getState ();
+			if(unitState == Unit.State.ChooseAction || unitState == Unit.State.ChooseMove)
+				selectedUnit.GetComponent<Unit>().setState(Unit.State.Ready);
 			selectedUnit = null;
+
+			chosenTile = null;
+
+			RemoveHighlight ();
+			mapManager.cleanMap ();
+			mapManager.cleanValidMovesTilesList ();
 		}
-		DestroyHologram ();
-		mapManager.resetMap ();
 	}
 
 	public void DeselectTile(){
@@ -225,107 +263,56 @@ public class ClickManager : MonoBehaviour {
 		}
 	}
 
-}
 
-/*		if (selectedUnit != null && selectedTile != null) {
-			Unit.State unitState = selectedUnit.GetComponent<Unit> ().getState ();
-			//MOVING
-			if (!tile.getIsOccupied ()) {
-				if (unitState == Unit.State.Ready) {
-					Debug.Log ("Tile not occupied: Moving");
-					//map to new tile
-					mapManager.GeneratePathTo (selectedUnit, tile);
-					//if you have enough movement...
-					if (selectedUnit.GetComponent<Unit> ().getRemaininingMovement () >= selectedUnit.GetComponent<Unit> ().getCurrentPathCount ()) {
 
-						//change occupied space of the selected unit before moving
-						mapManager.tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
-							selectedUnit.GetComponent<Unit> ().getTileY ()].setIsOccupied (false, null);
-						mapManager.tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
-							selectedUnit.GetComponent<Unit> ().getTileY ()].setIsSelected (false);
-						
-						//our new tile is now our selected one
-						tile.setIsOccupied (true, selectedUnit);
-						selectedTile = tile;
-						selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
-						return;
-						//Deselect ();
-					} else {
-						Debug.Log ("Not enough movement");
-						selectedUnit.GetComponent<Unit> ().setCurrentPath (null);
-					}
-					//if your remaning movement is equal to paths amount, deselct this unit
-					return;
-				}
+	public void HighlightTiles(string color){
+		if (color == "None") {
+			foreach (Tile tile in validTilesList) {
+				tile.setHighlighted (false);
 			}
-				
-
-
-			//We have a unit, and we just clicked on another unit
-			if (tile.getIsOccupied()) {
-				if (tile.getOccupyingUnit () == selectedUnit) {
-					//Deselecting if we clicked on ourselves...
-					selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
-					Debug.Log("Moved to my own location");
-				} else {
-					if (unitState == Unit.State.Ready || unitState == Unit.State.Action) {
-						Debug.Log ("Trying to attack another thing");
-						switch (tile.getOccupyingUnit ().GetComponent<Unit> ().faction) {
-						case UnitManager.Faction.Enemy:
-							Debug.Log ("Targeted enemy enemy");
-
-							//Calculate weapon range
-							int dist = mapManager.GetTileDistance (tile, selectedTile);
-							Debug.Log ("Dist = " + dist);
-							if (dist == 1 && selectedUnit.GetComponent<Unit>().getMeleeWeaponType() != Unit.MeleeWeaponType.None) {
-								Debug.Log ("Initiating Melee attack");
-							} else if (dist == 2 && selectedUnit.GetComponent<Unit> ().getRangedWeaponType () != Unit.RangedWeaponType.None) {
-								Debug.Log ("Initiating Ranged Attack");
-							} else {
-								Debug.Log ("Failed to attack!");
-							}
-
-
-							break;
-
-
-						case UnitManager.Faction.Ally:
-							Debug.Log ("Hit Ally");
-							break;
-
-
-						default:
-							Debug.Log ("Weird tag hit");
-							break;
-						}
-					}
-				} 
-				return;
-
-			}
-		
+			return;
 		}
 
+		foreach (Tile tile in validTilesList) {
+			tile.setHighlighted (true, color);
+		}
 
-		//OTHERWISE, We CHECK IF THERE IS A UNIT
-		//AND SET THAT AS OUR UNIT
-		if (selectedUnit == null && selectedTile == null) {
-			//can we select this unit?
-			if (tile.getIsOccupied ()){
-				if (tile.getOccupyingUnit ().GetComponent<Unit> ().getState () == Unit.State.Ready) {
-					Debug.Log ("Selecting new unit");
-					Deselect ();
-					SelectTile (tile);
-					SelectUnit (tile.getOccupyingUnit ());
-					return;
-				} else {
-					Debug.Log ("Selected a Non-ready unit");
-					Deselect ();
-				}
-			} else {
-				return;
-			}
-		} else {
-			Deselect ();
-			Debug.Log ("MISMATCH ON UNIT AND TILE");
-		}*/
+		if (color == "Red") { //sets center piece as blue in choose action
+			validTilesList [0].setHighlighted (true, "Blue");
+			//here I can do a foreach to search for an ally
+		}
+	}
+
+	public void RemoveHighlight(){
+		HighlightTiles ("None");
+	}
+
+}
+
+/*FOR ACTUALLY MOVING
+//map to new tile
+mapManager.GeneratePathTo (selectedUnit, tile);
+//if you have enough movement...
+if (selectedUnit.GetComponent<Unit> ().hasEnoughMove()) {
+
+	//change occupied space of the selected unit before moving
+	mapManager.tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
+		selectedUnit.GetComponent<Unit> ().getTileY ()].setIsOccupied (false, null);
+	mapManager.tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
+		selectedUnit.GetComponent<Unit> ().getTileY ()].setIsSelected (false);
+
+	//our new tile is now our selected one
+	tile.setIsOccupied (true, selectedUnit);
+
+	//removes the fake hologram
+	DestroyHologram ();
+	//remove highlighted tiles
+	mapManager.resetMap ();
+	return;
+	//Deselect ();
+} else {
+	Debug.Log ("Not enough movement");
+	selectedUnit.GetComponent<Unit> ().setCurrentPath (null);
+}
+//if your remaning movement is equal to paths amount, deselct this unit
+return;*/
