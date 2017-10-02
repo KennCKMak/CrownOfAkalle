@@ -190,6 +190,8 @@ public class Unit : MonoBehaviour {
 	}
 
 	public bool hasEnoughMove(){
+		if (currentPath == null)
+			return true;
 		if (currentPath.Count - 1 <= remainingMovement)
 			return true;
 		else
