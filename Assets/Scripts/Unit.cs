@@ -17,23 +17,32 @@ using UnityEngine;
 public class Unit : MonoBehaviour {
 
 
-	protected enum State { Ready, Selected, Done, Dead }
+	public enum State { Ready, Choose, Done, Dead }
 	[SerializeField] protected State unitState;
 	[SerializeField] protected int unitID;
+	[HideInInspector] protected GameObject visualPrefab;
+
+	public bool isSelected;
+	public Shader shaderNormal;
+	public Shader shaderOutline;
 
 	[SerializeField] protected int tileX;
 	[SerializeField] protected int tileY;
-	public CombatManager combatManager;
-	public MapManager map;
+	[HideInInspector]public MapManager map;
 	List<Node> currentPath = null;
 
+	[HideInInspector]public UnitManager unitManager;
+	public UnitManager.Faction faction;
 
-	[SerializeField] protected enum MeleeWeaponType { None, Sword, Spear, Mace };
-	[SerializeField] protected enum RangedWeaponType { None, Bow, Crossbow};
+	[HideInInspector] public ClickManager clickManager;
 
-	[SerializeField]protected GameObject UnitPrefab; //Model representation
+	//STATS FOR THE UNIT
+	public enum MeleeWeaponType { None, Sword, Spear, Mace };
+	public enum RangedWeaponType { None, Bow, Crossbow};
+
 	[SerializeField]protected int Speed; //How many tiles
 	[SerializeField]protected float remainingMovement;
+	protected bool isMoving = false;
 
 	[SerializeField]protected int UnitSize; 
 	[SerializeField]protected int MaxUnitSize;
@@ -56,25 +65,17 @@ public class Unit : MonoBehaviour {
 	[SerializeField]protected int RangedAttack;
 
 	void Start(){
-		if (unitID == null){
-			Destroy (gameObject);
+		if (!(unitID >= 0)){
 			Debug.Log ("Failed ID");
+			Destroy (gameObject);
 		}
 		transform.position = new Vector3 (tileX, 1.25f, tileY);
 
 
-		combatManager = GameObject.Find("GameManager").GetComponent<CombatManager>();
-		map = GameObject.Find ("GameManager").GetComponent<MapManager> ();
 	}
-	void LateStart(){
 
-		//on start, tell map that the tile I'm on is mine
-		map.tileArray[tileX, tileY].setIsOccupied(true);
-
-	}
 
 	void Awake(){
-		unitState = State.Ready;
 		checkDefense (); //setting armoured tag
 		if(unitIsArmoured() || unitIsShielded())
 			setSpeed (getSpeed () - 1);
@@ -82,8 +83,8 @@ public class Unit : MonoBehaviour {
 			setSpeed (getSpeed () * 2);
 		if (getDefense () > 20)
 			setSpeed (getSpeed () - 1);
-		restoreMovement ();
-
+		
+		NewTurn ();
 		setHealth (MaxHealth);
 	}
 
@@ -101,34 +102,18 @@ public class Unit : MonoBehaviour {
 	}
 
 	void OnMouseUp(){
-		//selected
-		Debug.Log("I was touched!");
-		if (unitState != State.Dead) {
-			if (unitState == State.Ready) {
-				//the other unit
-				if(map.selectedUnit != null)
-					map.selectedUnit.GetComponent<Unit> ().setState (0);
-				map.selectedUnit = this.gameObject;
-				unitState = State.Selected;
-			} 
-		//selected again
-		else if (unitState == State.Selected && map.selectedUnit == this) {
-				map.selectedUnit = null;
-				unitState = State.Ready;
-			}
-		}
 
 
 	}
 
 
 	//________UNIT STATE_______//
-	public void setState(int num){ //used to access the other states of units
-		unitState = (State)num;
+	public void setState(State newState){ //used to access the other states of units
+		unitState = newState;
 	}
 
-	public int getState(){
-		return (int)unitState;
+	public State getState(){
+		return unitState;
 	}
 
 	public void setUnitID(int num){
@@ -137,6 +122,33 @@ public class Unit : MonoBehaviour {
 
 	public int getUnitID(){
 		return unitID;
+	}
+
+	public void setOutline(bool b){
+		if (b) {
+			transform.GetChild (0).gameObject.GetComponent<Renderer> ().material.shader = shaderOutline;
+		} else {
+			transform.GetChild(0).gameObject.GetComponent<Renderer>().material.shader = shaderNormal;
+		}
+	}
+
+
+	public void setIsSelected(bool b){
+		isSelected = b;
+		setOutline (b);
+
+	}
+
+	public bool getIsSelected(){
+		return isSelected;
+	}
+
+	public GameObject getVisualPrefab(){
+		return visualPrefab;
+	}
+
+	public void setVisualPrefab(GameObject newPrefab){
+		visualPrefab = newPrefab;
 	}
 
 	//_________MOVEMENT, PATHFINDING________//
@@ -160,41 +172,55 @@ public class Unit : MonoBehaviour {
 		currentPath = newPath;
 	}
 
+	public bool hasEnoughMove(){
+		if (currentPath.Count - 1 <= remainingMovement)
+			return true;
+		else
+			return false;
+	}
+
+	public int getCurrentPathCount(){
+		if (currentPath == null)
+			return -1;
+		return currentPath.Count-1;
+	}
+
 	public void drawCurrentPath(){
-		int currNode = 0;
+		if (currentPath == null) {
+			return;
+		}
+
+		int currNode = 0; //cycles through and draws a vector
 		while (currNode < currentPath.Count-1) {
 			Vector3 start = map.TileCoordToWorldCoord (currentPath [currNode].x, currentPath [currNode].y) + 
 				new Vector3(0, 1, 0);
 			Vector3 end = map.TileCoordToWorldCoord (currentPath [currNode+1].x, currentPath [currNode+1].y) + 
 				new Vector3(0, 1, 0);
-
-			Debug.DrawLine (start, end, Color.black);
+			Debug.DrawLine (start, end, Color.white);
 			currNode++;
 		}
 	}
+
 	//command to move to the next node
 	public void MoveNextTile(){
 		if (currentPath == null)
 			return;
-		if (remainingMovement <= 0) {
+		if (remainingMovement <= 0)
 			return;
-
-		}
-			//remove movement cost	
+		
 		transform.position = map.TileCoordToWorldCoord(getTileX(), getTileY());
-		remainingMovement -= 1;//(int)map.CostToEnterTile(currentPath[0].x, currentPath[0]. y,currentPath[1].x, currentPath[1].y);
+		//remove movement cost	
+		remainingMovement -= (int)map.CostToEnterTile(currentPath[0].x, currentPath[0].y, currentPath[1].x, currentPath[1].y);
 
 		//move
-		setTileX(currentPath[1].x);  
+		setTileX(currentPath [1].x);  
 		setTileY(currentPath [1].y);
-		
 
 		currentPath.RemoveAt (0);
-
 		if(currentPath.Count == 1){
-				//we only have on tile left in the path, so that must be our dest, 
-				//and we are on it, so we can now clear pathfinding info
-				currentPath = null;
+			endPath();
+			//we only have on tile left in the path, so that must be our dest, 
+			//and we are on it, so we can now clear pathfinding info
 		}
 	}
 	//the moving 
@@ -204,28 +230,28 @@ public class Unit : MonoBehaviour {
 		}
 		
 		transform.position = Vector3.MoveTowards (transform.position, map.TileCoordToWorldCoord (getTileX(), getTileY()), Speed/2 * Time.deltaTime);
-		if (remainingMovement == 0)
-			currentPath = null;
 	}
 
-	void MoveTowards(){
-
+	public bool getIsMoving(){
+		return isMoving;
 	}
 
-	void restoreMovement(){
+	public void setIsMoving(bool b){
+		isMoving = b;
+	}
+
+	void endPath(){
+		currentPath = null;
+	}
+
+	public void NewTurn(){
 		remainingMovement = Speed;
+		setState (State.Ready);
 	}
 
 
 
 	//__________GET AND SET FUNCTIONS FOR VARIABLES_________//
-	public GameObject getUnitPrefab(){
-		return UnitPrefab;
-	}
-	public void setUnitPrefab(GameObject newPrefab){
-		UnitPrefab = newPrefab;
-	}
-
 	public int getSpeed(){
 		return Speed;
 	}
@@ -349,12 +375,12 @@ public class Unit : MonoBehaviour {
 
 
 	//MELEE
-	public void setMeleeWeaponType(int num){
-		MeleeWeapon = (MeleeWeaponType)num;
+	public void setMeleeWeaponType(MeleeWeaponType newMeleeWeapon){
+		MeleeWeapon = newMeleeWeapon;
 	}
 
-	public int getMeleeWeaponType(){
-		return (int)MeleeWeapon;
+	public MeleeWeaponType getMeleeWeaponType(){
+		return MeleeWeapon;
 	}
 
 	public void setMeleeExpertise(int num){
@@ -374,12 +400,12 @@ public class Unit : MonoBehaviour {
 	}
 
 	//RANGED
-	public void setRangedeWeaponType(int num){
-		RangedWeapon = (RangedWeaponType)num;
+	public void setRangedeWeaponType(RangedWeaponType newRangedWeapon){
+		RangedWeapon = newRangedWeapon;
 	}
 
-	public int getRangedWeaponType(){
-		return (int)RangedWeapon;
+	public RangedWeaponType getRangedWeaponType(){
+		return RangedWeapon;
 	}
 
 	public void setRangedExpertise(int num){
