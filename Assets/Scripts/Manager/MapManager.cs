@@ -372,10 +372,7 @@ public class MapManager : MonoBehaviour {
 
 
 	public int GetTileDistance(Tile tile1, Tile tile2){
-		int num = 0;
-		Debug.Log ("Tile1 @ " + tile1.getTileX () + ", " + tile1.getTileY () + ". Tile2 @ " + tile2.getTileX () + ", " + tile2.getTileY ());
-
-		return num += (Mathf.Abs (tile2.getTileX () - tile1.getTileX ()) + Mathf.Abs (tile2.getTileY () - tile1.getTileY ()));
+		return (Mathf.Abs (tile2.getTileX () - tile1.getTileX ()) + Mathf.Abs (tile2.getTileY () - tile1.getTileY ()));
 	}
 
 

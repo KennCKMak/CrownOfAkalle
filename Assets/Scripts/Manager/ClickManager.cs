@@ -8,11 +8,7 @@ using UnityEngine;
 /// Processes the click commmands of the player
 /// this includes saving the selected tile, selected unit, and all the other goodies
 /// 
-/// What should I do next?
 /// 
-/// Finish up the move->location->choose to attack or whatever.
-/// Also make it so you can't walk into an opponent's place with the 'Show map highlight'
-/// Setup interaction between two enemies for combat
 /// 
 /// </summary>
 
@@ -20,6 +16,8 @@ using UnityEngine;
 
 
 public class ClickManager : MonoBehaviour {
+
+	public bool canClick;
 
 	public GameObject selectedUnit;
 	public Tile selectedTile;
@@ -29,7 +27,6 @@ public class ClickManager : MonoBehaviour {
 	[HideInInspector] public MapManager mapManager;
 	[HideInInspector] public UnitManager unitManager;
 
-	private GameObject Hologram;
 	private bool isHologram = false;
 
 	// Use this for initialization
@@ -40,8 +37,8 @@ public class ClickManager : MonoBehaviour {
 		selectedTile = null;
 		//chosenTile = null;
 
-		Hologram = transform.FindChild ("Hologram").gameObject;
-		Hologram.transform.parent = null;
+		canClick = true;
+
 	}
 	
 	// Update is called once per frame
@@ -62,8 +59,12 @@ public class ClickManager : MonoBehaviour {
 	}
 
 	public void receiveClick(Tile tile){
-		if (selectedTile == null) 
+		if (!canClick) {
 			return;
+		}
+		if (selectedTile == null) {
+			return;
+		}
 
 
 		//NO UNIT SELECTED
@@ -72,7 +73,7 @@ public class ClickManager : MonoBehaviour {
 			if (tile.isOccupied ()){
 				switch (tile.getOccupyingUnit ().GetComponent<Unit> ().getState ()) {
 				case (Unit.State.Ready):
-					Debug.Log ("Selecting new unit");
+					//Debug.Log ("Selecting new unit");
 					chosenTile = null;
 					SelectUnit (tile.getOccupyingUnit ());
 
@@ -124,15 +125,14 @@ public class ClickManager : MonoBehaviour {
 						mapManager.cleanValidMovesTilesList (); //removes old map manager
 						mapManager.showValidMoves (selectedUnit, chosenTile, 1, "Attack");
 						validTilesList = mapManager.getValidMovesTilesList ();
-						for (int i = 1; i < 5; i++) {
+						for (int i = 1; i < 5-1; i++) {
 							RemoveHighlight(validTilesList [i]);
+							Debug.Log ("removed red highlight");
 						}
+						mapManager.cleanValidMovesTilesList ();
+						mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
+						validTilesList = mapManager.getValidMovesTilesList ();
 					}
-
-
-					mapManager.cleanValidMovesTilesList ();
-					mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
-					validTilesList = mapManager.getValidMovesTilesList ();
 
 				}
 				break;
@@ -179,7 +179,9 @@ public class ClickManager : MonoBehaviour {
 								Debug.Log ("Failed to attack, dist = " + dist);
 								selectedUnit.GetComponent<Unit> ().setIsAttacking(false);
 								selectedUnit.GetComponent<Unit> ().setTarget (null);
+								return;
 							}
+							canClick = false;
 
 							break;
 						case UnitManager.Faction.Ally:
@@ -188,6 +190,7 @@ public class ClickManager : MonoBehaviour {
 						default:  //end of checking what enemy we hit
 							Debug.Log ("Weird tag hit");
 							break; 
+
 						}
 
 					} else {
@@ -204,30 +207,16 @@ public class ClickManager : MonoBehaviour {
 		
 
 	public void StartHologram(){
-		/*if (!isHologram) {
-			/*GameObject holo = Instantiate (selectedUnit.GetComponent<Unit> ().getVisualPrefab (), Hologram.transform.position, Quaternion.identity) as GameObject;
-			holo.GetComponent<Renderer> ().material.shader = Shader.Find ("Unlit/Transparent"); 
-			holo.transform.parent = Hologram.transform;
-
-
-			isHologram = true;
-		}*/
 		isHologram = true;
 	}
 
 	public void MoveHologram(){
 		if (selectedTile && !chosenTile && validTilesList.Contains(selectedTile))
-			//Hologram.transform.position = mapManager.TileCoordToWorldCoord (selectedTile.getTileX (), selectedTile.getTileY ());
 			selectedUnit.transform.position = mapManager.TileCoordToWorldCoord (selectedTile.getTileX (), selectedTile.getTileY ());
 			
 	}
 
 	public void StopHologram(){
-		/*if (Hologram.transform.childCount > 0) {
-			Destroy (Hologram.transform.GetChild (0).gameObject);
-			isHologram = false;
-		}*/
-
 		selectedUnit.transform.position = mapManager.TileCoordToWorldCoord (
 			selectedUnit.GetComponent<Unit>().getTileX (), selectedUnit.GetComponent<Unit>().getTileY ());
 		isHologram = false;
@@ -310,31 +299,3 @@ public class ClickManager : MonoBehaviour {
 	}
 
 }
-
-/*FOR ACTUALLY MOVING
-//map to new tile
-mapManager.GeneratePathTo (selectedUnit, tile);
-//if you have enough movement...
-if (selectedUnit.GetComponent<Unit> ().hasEnoughMove()) {
-
-	//change occupied space of the selected unit before moving
-	mapManager.tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
-		selectedUnit.GetComponent<Unit> ().getTileY ()].setIsOccupied (false, null);
-	mapManager.tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
-		selectedUnit.GetComponent<Unit> ().getTileY ()].setIsSelected (false);
-
-	//our new tile is now our selected one
-	tile.setIsOccupied (true, selectedUnit);
-
-	//removes the fake hologram
-	DestroyHologram ();
-	//remove highlighted tiles
-	mapManager.resetMap ();
-	return;
-	//Deselect ();
-} else {
-	Debug.Log ("Not enough movement");
-	selectedUnit.GetComponent<Unit> ().setCurrentPath (null);
-}
-//if your remaning movement is equal to paths amount, deselct this unit
-return;*/

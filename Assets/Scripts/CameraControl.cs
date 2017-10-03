@@ -4,27 +4,23 @@ using UnityEngine;
 
 public class CameraControl : MonoBehaviour {
 
-	public float moveSpeed;	
-	public float minMoveSpeed = 2;
-	public float maxMoveSpeed = 10;
-	public float rotSpeed = 90;
+	protected float moveSpeed = 8;
+	protected float minMoveSpeed = 2;
+	protected float maxMoveSpeed = 10;
+	protected float rotSpeed = 90;
 	float scrollSpeed = 4.0f;
 
-	public float heightDest;
-	public float heightMax = 10f;
-	public float heightMid = 4.5f;
-	public float heightMin = 1.7f;
-
-	public float upperEulerAngle = 67.615f;
-	public float lowerEulerAngle = 22.690f;
-
-	public float targetEulerAngle;
 	float percentage;
+	protected float heightDest;
+	protected float heightMax = 10f;
+	protected float heightMid = 4.5f;
+	protected float heightMin = 1.7f;
+	protected float upperEulerAngle = 56.0f;
+	protected float lowerEulerAngle = 22.690f;
+	protected float targetEulerAngle;
 
 	void Start(){
 		heightDest = transform.position.y;
-
-
 	}
 
 	// Update is called once per frame
@@ -62,13 +58,5 @@ public class CameraControl : MonoBehaviour {
 			this.transform.Rotate (Vector3.down * rotSpeed * Time.deltaTime);
 		if (Input.GetKey (KeyCode.E))
 			this.transform.Rotate (Vector3.up * rotSpeed * Time.deltaTime);
-
-
-
-
-
-
-
-
 	}
 }

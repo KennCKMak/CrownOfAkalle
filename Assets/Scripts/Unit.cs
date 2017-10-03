@@ -1,10 +1,10 @@
 ﻿/// <summary>
 /// A Unit is an entire squadron of multiple soldiers and is used as a singular entity until the simulation.
-/// All actual units in the game will inherit this class and branch off 
-/// 
-/// The unit will currently branch off into -> Melee, Ranged, and Cavalry
 /// 
 /// 
+/// There is no branching off. Everything is done here.
+/// 
+/// In the editor, the person sets the Weapons, move, health defense... basically everything
 ///
 /// 
 /// </summary>
@@ -20,7 +20,7 @@ public class Unit : MonoBehaviour {
 	public enum State { Ready, ChooseMove, ChooseAction, Action, Attack, Done, Dead }
 	[SerializeField] protected State unitState;
 	[SerializeField] protected int unitID;
-	[HideInInspector] protected GameObject visualPrefab;
+	[HideInInspector] protected GameObject simPrefab;
 	[HideInInspector] protected Animator animator;
 
 
@@ -51,6 +51,7 @@ public class Unit : MonoBehaviour {
 
 	[SerializeField]protected int Health;
 	[SerializeField]protected int MaxHealth;
+	[SerializeField]protected float HealthPerUnit;
 	[SerializeField]protected int Defense;
 	[SerializeField]protected bool shielded;
 
@@ -96,11 +97,6 @@ public class Unit : MonoBehaviour {
 			Move ();
 		}
 
-		if (!isAlive()) {
-			Debug.Log ("Unit dead");
-			Destroy (gameObject, 2f);
-			transform.GetComponent<Unit> ().enabled = false;
-		}
 	}
 
 
@@ -122,6 +118,7 @@ public class Unit : MonoBehaviour {
 			ranged = true;
 
 		setHealth (MaxHealth);
+		HealthPerUnit = MaxHealth / MaxUnitSize;
 		NewTurn ();
 	}
 
@@ -154,7 +151,6 @@ public class Unit : MonoBehaviour {
 			break;
 
 		}
-
 	}
 
 	//________UNIT STATE_______//
@@ -184,6 +180,10 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	public Shader getShaderOutline(){
+		return shaderOutline;
+	}
+
 
 	public void setIsSelected(bool b){
 		selected = b;
@@ -195,12 +195,12 @@ public class Unit : MonoBehaviour {
 		return selected;
 	}
 
-	public GameObject getVisualPrefab(){
-		return visualPrefab;
+	public GameObject getSimPrefab(){
+		return simPrefab;
 	}
 
-	public void setVisualPrefab(GameObject newPrefab){
-		visualPrefab = newPrefab;
+	public void setSimPrefab(GameObject newPrefab){
+		simPrefab = newPrefab;
 	}
 
 	//_________MOVEMENT, PATHFINDING________//
@@ -350,13 +350,13 @@ public class Unit : MonoBehaviour {
 	}
 
 	private void updateUnitSize(){
+		float percentage = (float)getHealth() / (float)getMaxHealth();
 		if (Health > 0){
-			float percentage = (float)getHealth() / (float)getMaxHealth();
 			setUnitSize(Mathf.CeilToInt(MaxUnitSize * percentage));
 		} else {
-			setHealth (0);
+			setUnitSize (0);
 			setState (State.Dead);
-			Debug.Log("Unit dead");
+			unitManager.requestDelete (this.gameObject);
 		}
 	}
 		
@@ -379,7 +379,6 @@ public class Unit : MonoBehaviour {
 	public void takeDamage(int num){
 		Health -= num;
 		updateUnitSize ();
-
 	}
 
 	public int getMaxHealth(){
@@ -388,6 +387,10 @@ public class Unit : MonoBehaviour {
 
 	public void setMaxHealth(int num){
 		MaxHealth = num;
+	}
+
+	public float getHealthPerUnit(){
+		return HealthPerUnit;
 	}
 
 	public bool isAlive(){
@@ -533,7 +536,7 @@ public class Unit : MonoBehaviour {
 		if (MeleeWeapon != MeleeWeaponType.None)
 			num = 1;
 		if (RangedWeapon != RangedWeaponType.None)
-			num = 3;
+			num = 5;
 		return num;
 	}
 

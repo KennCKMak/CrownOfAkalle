@@ -11,25 +11,28 @@ using UnityEngine;
 /// </summary>
 
 public class UnitManager : MonoBehaviour {
-
-	public GameObject TemplateUnitPrefab;
-	public GameObject SwordsmanUnitPrefab;
-	public GameObject ArcherUnitPrefab;
-
-	public enum UnitName {
-		TemplateUnit,
-		SwordsmanUnit,
-		ArcherUnit
-	}
-
 	public enum Faction{
 		Ally,
 		Enemy,
 		Neutral
 	}
 
+	public enum UnitName {
+		TemplateUnit,
+		SwordsmanUnit,
+		ArcherUnit
+	}
+	int numberOfUnits = 3;
+	public GameObject[] UnitPrefabs;
+	public GameObject[] UnitSimPrefabs;
+
+
+
+
+
 	public GameObject[] unitObjArray;
 	public Unit[] unitArray;
+	private List<GameObject> deadUnits;
 	int ArraySize;
 	//public List<GameObject> Units;
 
@@ -49,8 +52,10 @@ public class UnitManager : MonoBehaviour {
 
 
 		ArraySize = 20;
+
 		unitObjArray = new GameObject[ArraySize];
 		unitArray = new Unit[ArraySize];
+		deadUnits = new List<GameObject> ();
 		EmptyArrays ();
 
 		shaderStandard = Shader.Find ("Standard");
@@ -85,9 +90,6 @@ public class UnitManager : MonoBehaviour {
 				unitScript.setTileY (y);
 				mapManager.tileArray [x, y].setIsOccupied (true, newUnit);
 
-				//Prefab values
-				unitScript.setVisualPrefab(getAssociatedPrefab(unitName).transform.GetChild(0).gameObject);
-
 				unitScript.faction = faction;
 				unitScript.shaderNormal = shaderStandard;
 				if(faction == Faction.Ally)
@@ -105,6 +107,8 @@ public class UnitManager : MonoBehaviour {
 				unitArray [newID] = unitScript;
 				unitScript.setUnitID (newID);
 
+				unitScript.setSimPrefab (getAssociatedSimPrefab (unitName));
+
 				unitScript.SetupUnit ();
 
 				loopRunning = false;
@@ -112,33 +116,35 @@ public class UnitManager : MonoBehaviour {
 		}
 	}
 
-	public void DeleteUnit(GameObject unitObj){
-		int ID = unitObj.GetComponent<Unit> ().getUnitID ();
-		if (unitObjArray [ID] == unitObj) {
-			unitObjArray [ID] = null;
-			unitArray [ID] = null;
-			Destroy (unitObj);
-		} else {
-			Debug.Log ("Attempted deletion of an incorrect id.");
+	public void ScanForDeadUnits(){
+		if (deadUnits.Count > 0) {
+			foreach (GameObject unit in deadUnits) {
+				DeleteUnit (unit);
+			}
 		}
+		deadUnits.Clear ();
+	}
+
+
+	public void requestDelete(GameObject deleted){
+		deadUnits.Add (deleted);
+	}
+
+	public void DeleteUnit(GameObject deletedUnit){
+		int id = deletedUnit.GetComponent<Unit>().getUnitID();
+		mapManager.tileArray [unitArray [id].getTileX (), unitArray [id].getTileY ()].setIsOccupied (false, null);
+		unitObjArray [id] = null;
+		unitArray [id] = null;
+		Destroy (deletedUnit.gameObject, 2f);
 	}
 
 	protected GameObject getAssociatedPrefab(UnitName unitName){
-		GameObject prefab;
+		return UnitPrefabs[(int)unitName];
 
-		switch (unitName) {
+	}
 
-		case UnitName.SwordsmanUnit:
-			prefab = SwordsmanUnitPrefab;
-			break;
-		case UnitName.ArcherUnit:
-			prefab = ArcherUnitPrefab;
-			break;
-		default:
-			prefab = TemplateUnitPrefab;
-			break;
-		}
-		return prefab;
+	protected GameObject getAssociatedSimPrefab(UnitName unitName){
+		return UnitSimPrefabs[(int)unitName];
 
 	}
 
@@ -149,5 +155,6 @@ public class UnitManager : MonoBehaviour {
 			}
 		}
 	}
+
 
 }

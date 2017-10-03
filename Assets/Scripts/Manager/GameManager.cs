@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour {
+	
+	[HideInInspector] public MapManager mapManager;
+	[HideInInspector]public UnitManager unitManager;
+	[HideInInspector]public CombatManager combatManager;
+	[HideInInspector]public ClickManager clickManager;
+	[HideInInspector]public CameraManager cameraManager;
 
-	private MapManager mapManager;
-	private UnitManager unitManager;
-	private CombatManager combatManager;
-	private ClickManager clickManager;
 
 	// Use this for initialization
 	void Start () {
@@ -15,6 +17,7 @@ public class GameManager : MonoBehaviour {
 		unitManager = GetComponent<UnitManager> ();
 		combatManager = GetComponent<CombatManager> ();
 		clickManager = GetComponent<ClickManager> ();
+		cameraManager = GetComponent<CameraManager> ();
 	}
 
 
@@ -31,7 +34,10 @@ public class GameManager : MonoBehaviour {
 
 			unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 8, 3, UnitManager.Faction.Ally);
 			unitManager.CreateUnit (UnitManager.UnitName.ArcherUnit, 9, 3, UnitManager.Faction.Ally);
+
+
 			unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 8, 7, UnitManager.Faction.Enemy);
+			unitManager.CreateUnit (UnitManager.UnitName.ArcherUnit, 9, 7, UnitManager.Faction.Enemy);
 			/*
 			for(int i = 0; i < 4; i++){
 				unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 8 + i, 3, UnitManager.Faction.Ally);

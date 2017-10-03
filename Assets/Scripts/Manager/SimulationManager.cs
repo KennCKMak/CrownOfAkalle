@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitAnimation : MonoBehaviour {
-
-
+public class SimulationManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
@@ -15,4 +13,9 @@ public class UnitAnimation : MonoBehaviour {
 	void Update () {
 		
 	}
+
+	public void StartSimulation(Unit attacker, Unit defender){
+
+	}
+
 }
