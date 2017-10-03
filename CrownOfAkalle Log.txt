@@ -20,22 +20,29 @@ Deselect is at Esc, but find another key to use (RMB?)
 - Set up everything
 - Tile generation, pathfinding, select tiles
 - Calculation of how damage is done
+- Unit class started
 
 
 01-09-2017 - Sun
-- Unit selection
+- Unit selection and deselection
 - Highlighting tiles for movement
+- Shaders are hard
+- Places a hologram on the tile to show movement
 
 
 02-10-2017 - Mon - 11:40
-- Better unit selection
+- Better unit selection. Like, got rid of all the old ones.
 - Better highlighting of tiles
+- Instead of a hologram, move yourself!
+- Outlines added!
 - Unit states fixed again, actually implemented in
 - Resolving of combat, selecting enemies
 
 02-10-2017 - Mon - 20:00
 - Fixed units again
 - Buffed off earlier work
+- Outlines added! Again! With two more colors!
+- Animations! Idle, walking, charging and attack implemented
 - Added camera scrolling, minor changes to values
 
 
