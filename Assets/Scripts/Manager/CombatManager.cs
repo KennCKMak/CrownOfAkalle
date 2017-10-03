@@ -66,9 +66,6 @@ public class CombatManager : MonoBehaviour {
 
 		Defender.takeDamage (CalculateDamage (Attacker, Defender, "Melee"));
 		requiredDefenderDeaths = initialDefenderTroopCount - Defender.getUnitSize ();
-		Debug.Log("Gotten initialDef count: = " +initialDefenderTroopCount);
-		Debug.Log("Defender unitsize = " + Defender.getUnitSize());
-		Debug.Log ("Required Defender deaths " + requiredDefenderDeaths);
 
 		if (Defender.isMelee ()) {
 			Attacker.takeDamage (CalculateDamage (Defender, Attacker, "Melee"));
@@ -192,7 +189,7 @@ public class CombatManager : MonoBehaviour {
 
 	void Simulate(){
 		if (elapsedTime > introSimulationTime && simState == SimulationState.Intro) {
-			Debug.Log ("Started");
+			//Debug.Log ("Started");
 			foreach (GameObject unit in AttackingUnits) {
 				unit.GetComponent<UnitSim> ().StartSim ();
 			}
@@ -216,12 +213,6 @@ public class CombatManager : MonoBehaviour {
 		}
 
 		if (attackerDeaths >= requiredAttackerDeaths && defenderDeaths >= requiredDefenderDeaths && simState != SimulationState.Ending) {
-			//TODO
-			Debug.Log ("Attacker deaths: " + attackerDeaths);
-			Debug.Log ("RAttacker deaths: " + requiredAttackerDeaths);
-			Debug.Log ("Defender deaths: " + defenderDeaths);
-			Debug.Log ("RDefender deaths: " + requiredDefenderDeaths);
-			Debug.Log (simState.ToString ());
 			simState = SimulationState.Ending;
 			elapsedTime = maxSimulationTime;
 			foreach (GameObject unit in AttackingUnits)
@@ -231,13 +222,11 @@ public class CombatManager : MonoBehaviour {
 		}
 		if (elapsedTime >= maxSimulationTime && simState == SimulationState.Playing) {
 			simState = SimulationState.Ending;
-			Debug.Log ("Switching to Ending");
+			//Debug.Log ("Switching to Ending");
 		}
 
 		if (elapsedTime >= endSimulationTime && simState == SimulationState.Ending) {
-			Debug.Log ("Stopping here. ElapsedTime = " + elapsedTime);
 			StopSimulation ();
-			Debug.Log ("Flushed ElapsedTime = " + elapsedTime);
 		}
 
 		elapsedTime += Time.deltaTime;
