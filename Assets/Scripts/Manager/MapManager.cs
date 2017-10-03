@@ -44,7 +44,7 @@ public class MapManager : MonoBehaviour {
 		unitManager = GetComponent<UnitManager> ();
 
 		shaderStandard = Shader.Find ("Standard");
-		shaderOutline = Shader.Find ("Outlined/Custom");
+		shaderOutline = Shader.Find ("Outline/Black");
 
 		GenerateMapData ();
 		GenerateMapVisuals ();
@@ -347,7 +347,7 @@ public class MapManager : MonoBehaviour {
 				selectedUnit.GetComponent<Unit> ().getTileY ()].setIsOccupied (false, null);
 			//our new tile is now our selected one
 			tile.setIsOccupied (true, selectedUnit);
-			selectedUnit.GetComponent<Unit>().setState (Unit.State.Done);
+
 			return;
 		}
 	}

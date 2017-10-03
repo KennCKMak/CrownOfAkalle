@@ -106,21 +106,33 @@ public class ClickManager : MonoBehaviour {
 			//MOVING
 			case (Unit.State.ChooseMove):
 				if(validTilesList.Contains(tile)){
-					//if (!tile.isOccupied () && ) {
-						
-						chosenTile = tile;
+					chosenTile = tile;
 
-						RemoveHighlight ();
+					RemoveHighlight ();
+					mapManager.cleanValidMovesTilesList (); //removes old map manager
+					mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
+						//this one sets the list again
+					validTilesList = mapManager.getValidMovesTilesList (); //retrieve list of tiles
+					//if we are ranged, remove the ones closest to us
+
+
+					HighlightTiles ("Red"); //of valid tiles list, do...
+					selectedUnit.GetComponent<Unit>().setState(Unit.State.ChooseAction);
+
+					//If you are ranged only, remove the closest squares to you...
+					if (selectedUnit.GetComponent<Unit> ().isRanged () && !selectedUnit.GetComponent<Unit> ().isMelee ()) {
 						mapManager.cleanValidMovesTilesList (); //removes old map manager
-						mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
-							//this one sets the list again
-						validTilesList = mapManager.getValidMovesTilesList (); //retrieve list of tiles
+						mapManager.showValidMoves (selectedUnit, chosenTile, 1, "Attack");
+						validTilesList = mapManager.getValidMovesTilesList ();
+						for (int i = 1; i < 5; i++) {
+							RemoveHighlight(validTilesList [i]);
+						}
+					}
 
-						HighlightTiles ("Red"); //of valid tiles list, do...
-							selectedUnit.GetComponent<Unit>().setState(Unit.State.ChooseAction);
-					//} else if (tile.isOccupied() && tile.getOccupyingUnit() == selectedUnit()){
-						//chosenTile = tile;
-					//}
+
+					mapManager.cleanValidMovesTilesList ();
+					mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
+					validTilesList = mapManager.getValidMovesTilesList ();
 
 				}
 				break;
@@ -152,7 +164,7 @@ public class ClickManager : MonoBehaviour {
 								DeselectUnit ();
 
 
-							} else if (dist == 2 && selectedUnit.GetComponent<Unit> ().isRanged()) {
+							} else if (dist >= 2 && selectedUnit.GetComponent<Unit> ().isRanged() && selectedUnit.GetComponent<Unit>().getWeaponRange() >= dist) {
 								selectedUnit.GetComponent<Unit> ().setIsAttacking(true);
 								selectedUnit.GetComponent<Unit> ().setTarget (tile.getOccupyingUnit ().GetComponent<Unit>());
 								selectedUnit.GetComponent<Unit> ().setDist (dist);
@@ -266,6 +278,8 @@ public class ClickManager : MonoBehaviour {
 
 
 	public void HighlightTiles(string color){
+
+		//If cleaning things up...
 		if (color == "None") {
 			foreach (Tile tile in validTilesList) {
 				tile.setHighlighted (false);
@@ -273,10 +287,14 @@ public class ClickManager : MonoBehaviour {
 			return;
 		}
 
+
+		//highlight colours anyways
 		foreach (Tile tile in validTilesList) {
 			tile.setHighlighted (true, color);
 		}
 
+
+		//then edit
 		if (color == "Red") { //sets center piece as blue in choose action
 			validTilesList [0].setHighlighted (true, "Blue");
 			//here I can do a foreach to search for an ally
@@ -285,6 +303,10 @@ public class ClickManager : MonoBehaviour {
 
 	public void RemoveHighlight(){
 		HighlightTiles ("None");
+	}
+
+	public void RemoveHighlight(Tile tile){
+		tile.setHighlighted (false);
 	}
 
 }

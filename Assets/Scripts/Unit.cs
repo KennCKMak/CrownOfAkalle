@@ -21,6 +21,8 @@ public class Unit : MonoBehaviour {
 	[SerializeField] protected State unitState;
 	[SerializeField] protected int unitID;
 	[HideInInspector] protected GameObject visualPrefab;
+	[HideInInspector] protected Animator animator;
+
 
 	public bool selected;
 	[HideInInspector]public Shader shaderNormal;
@@ -75,6 +77,7 @@ public class Unit : MonoBehaviour {
 			Debug.Log ("Failed ID");
 			Destroy (gameObject);
 		}
+
 		transform.position = new Vector3 (tileX, 1.25f, tileY);
 
 
@@ -100,13 +103,11 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
-	void OnMouseUp(){
 
-
-	}
 
 	public void SetupUnit(){
-		
+
+		animator = this.gameObject.GetComponent<Animator> ();
 		checkDefense (); //setting armoured tag
 		if(isArmoured() || isShielded())
 			setSpeed (getSpeed () - 1);
@@ -124,9 +125,43 @@ public class Unit : MonoBehaviour {
 		NewTurn ();
 	}
 
+	public void checkAnimation(){
+		switch (unitState) {
+		case State.Ready:
+		case State.ChooseAction:
+		case State.ChooseMove:
+		case State.Done:
+			animator.SetBool ("isIdle", true);
+			animator.SetBool ("isMoving", false);
+			animator.SetBool ("isAttacking", false);
+			break;
+		case State.Action:
+			animator.SetBool ("isIdle", false);
+			animator.SetBool ("isMoving", true);
+			if (attacking)
+				animator.SetBool ("isAttacking", true);
+			else
+				animator.SetBool ("isAttacking", false);
+			break;
+
+		case State.Attack:
+			animator.SetBool ("isIdle", false);
+			animator.SetBool ("isMoving", false);
+			animator.SetBool ("isAttacking", false);
+			animator.SetTrigger ("Attack");
+			break;
+		default:
+			break;
+
+		}
+
+	}
+
 	//________UNIT STATE_______//
 	public void setState(State newState){ //used to access the other states of units
 		unitState = newState;
+
+		checkAnimation ();
 	}
 
 	public State getState(){
@@ -252,16 +287,20 @@ public class Unit : MonoBehaviour {
 
 		if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (getTileX (), getTileY ())) < 0.01f && currentPath == null) {
 			if (!attacking)
-				unitState = State.Done;
+				setState(State.Done);
 			else if(attacking) {
-				Debug.Log ("Here I am");
-				unitState = State.Attack;
+				setState(State.Attack);
+
+				transform.LookAt (map.TileCoordToWorldCoord(target.GetComponent<Unit>().getTileX(), target.GetComponent<Unit>().getTileY ()));
+				target.transform.LookAt (map.TileCoordToWorldCoord(getTileX(), getTileY()));
+					
 				combatManager.RequestCombatResolve (this, target, dist);
 			}
 		}
-		else
+		else{
 			transform.position = Vector3.MoveTowards (transform.position, map.TileCoordToWorldCoord (getTileX (), getTileY ()), Speed / 2 * Time.deltaTime);
-		
+			transform.LookAt (map.TileCoordToWorldCoord (getTileX (), getTileY ()));
+		}
 	}
 
 	public bool isMoving(){
@@ -316,6 +355,7 @@ public class Unit : MonoBehaviour {
 			setUnitSize(Mathf.CeilToInt(MaxUnitSize * percentage));
 		} else {
 			setHealth (0);
+			setState (State.Dead);
 			Debug.Log("Unit dead");
 		}
 	}
@@ -493,7 +533,7 @@ public class Unit : MonoBehaviour {
 		if (MeleeWeapon != MeleeWeaponType.None)
 			num = 1;
 		if (RangedWeapon != RangedWeaponType.None)
-			num = 2;
+			num = 3;
 		return num;
 	}
 

@@ -38,7 +38,9 @@ public class UnitManager : MonoBehaviour {
 	CombatManager combatManager;
 
 	protected Shader shaderStandard;
-	protected Shader shaderOutline;
+	protected Shader shaderOutlineBlack;
+	protected Shader shaderOutlineGreen;
+	protected Shader shaderOutlineRed;
 
 	// Use this for initialization
 	void Start () {
@@ -52,7 +54,9 @@ public class UnitManager : MonoBehaviour {
 		EmptyArrays ();
 
 		shaderStandard = Shader.Find ("Standard");
-		shaderOutline = Shader.Find ("Outlined/Custom");
+		shaderOutlineBlack = Shader.Find ("Outline/Black");
+		shaderOutlineGreen = Shader.Find ("Outline/Green");
+		shaderOutlineRed = Shader.Find ("Outline/Red");
 
 	}
 	
@@ -86,7 +90,12 @@ public class UnitManager : MonoBehaviour {
 
 				unitScript.faction = faction;
 				unitScript.shaderNormal = shaderStandard;
-				unitScript.shaderOutline = shaderOutline;
+				if(faction == Faction.Ally)
+					unitScript.shaderOutline = shaderOutlineGreen;
+				else if(faction == Faction.Enemy)
+					unitScript.shaderOutline = shaderOutlineRed;
+				else 
+					unitScript.shaderOutline = shaderOutlineBlack;
 				//setting script values
 				unitScript.map = mapManager;
 				unitScript.combatManager = combatManager;

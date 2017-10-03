@@ -24,7 +24,7 @@ public class CombatManager : MonoBehaviour {
 			Debug.Log ("Resolve melee");
 			ResolveCombatMelee (initiator, target);
 		}
-		else if (dist == 2) {
+		else if (dist >= 2) {
 			Debug.Log ("Resolve Ranged");
 			ResolveCombatRanged (initiator, target);
 		} else

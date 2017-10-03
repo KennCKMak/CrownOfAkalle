@@ -46,10 +46,20 @@ public class Tile : MonoBehaviour {
 	void OnMouseOver(){
 		clickManager.SelectTile (this);
 		setOutline (true);
+		if (isOccupied ()) {
+			if (!getOccupyingUnit ().GetComponent<Unit> ().isSelected ()) {
+				getOccupyingUnit ().GetComponent<Unit> ().setOutline (true);
+			}
+		}
+
 	}
 
 	void OnMouseExit(){
-		setOutline (false);
+		setOutline (false);		if (isOccupied ()) {
+			if (!getOccupyingUnit ().GetComponent<Unit> ().isSelected ()) {
+				getOccupyingUnit ().GetComponent<Unit> ().setOutline (false);
+			}
+		}
 	}
 
 
