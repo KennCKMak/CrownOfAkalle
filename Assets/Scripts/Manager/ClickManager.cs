@@ -125,9 +125,11 @@ public class ClickManager : MonoBehaviour {
 						mapManager.cleanValidMovesTilesList (); //removes old map manager
 						mapManager.showValidMoves (selectedUnit, chosenTile, 1, "Attack");
 						validTilesList = mapManager.getValidMovesTilesList ();
-						for (int i = 1; i < 5-1; i++) {
-							RemoveHighlight(validTilesList [i]);
-							Debug.Log ("removed red highlight");
+						for (int i = 1; i < 5; i++) {
+							try{
+								RemoveHighlight(validTilesList [i]);
+							}catch{
+							}
 						}
 						mapManager.cleanValidMovesTilesList ();
 						mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");

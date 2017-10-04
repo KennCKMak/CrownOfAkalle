@@ -23,6 +23,8 @@ public class UnitSim : MonoBehaviour {
 
 
 
+
+
 	protected float range;
 
 	protected bool invuln;
@@ -33,15 +35,18 @@ public class UnitSim : MonoBehaviour {
 	public bool canAttack = false;
 
 	public List<GameObject> EnemyList;
-	protected GameObject target;
+	[SerializeField] protected GameObject target;
 
 	protected float elapsedTime = 1.00f;
-	protected float attackSpeed = 1.00f;
+	[SerializeField] protected float attackSpeed;
+
+	protected float animationRange = 0.0f;
+	protected string combatType;
 
 
 	// Use this for initialization
 	void Start () {
-		
+
 	}
 	
 	// Update is called once per frame
@@ -55,6 +60,9 @@ public class UnitSim : MonoBehaviour {
 	}
 
 	public void StartSim(){
+		float num = ((float)Random.Range (1, 20 + 1) / 100 * Mathf.Pow (-1, Random.Range (1, 2 + 1)));
+			attackSpeed = 2.00f + num;
+
 		hasAction = true;
 		invuln = false;
 		FindTarget ();
@@ -76,6 +84,11 @@ public class UnitSim : MonoBehaviour {
 
 	public void Died(){
 		isDead = true;
+
+		if (!invuln) {
+			animator.SetBool ("isDead", true);
+			animator.SetInteger ("AnimVariance", Random.Range(1, 2+1));
+		}
 		hasAction = false;
 		combatManager.addDeath (mySide);
 	}
@@ -128,20 +141,29 @@ public class UnitSim : MonoBehaviour {
 	}
 
 	public void Action(){
+		if (combatType == "Melee")
+			animationRange = range;
+		else
+			animationRange = range*2.5f;
 		if(target){
-			if (Vector3.Distance (target.transform.position, transform.position) < range) {
-				Attack ();
+			if (Vector3.Distance (target.transform.position, transform.position) < animationRange) {
 				animator.SetBool ("isMoving", false);
+				animator.SetBool ("isIdle", false);
+				Attack ();
 			} else {
-				Move ();
 				animator.SetBool ("isMoving", true);
+				Move ();
 			}
 		}
 	}
 
 
 	public void Move() {
-		if(Vector3.Distance(transform.position, target.transform.position) > range+8) {
+		if (combatType == "Melee")
+			animationRange = range + 8;
+		else
+			animationRange = range * 2.5f;
+		if(Vector3.Distance(transform.position, target.transform.position) > animationRange) {
 			transform.position = Vector3.MoveTowards (transform.position, target.transform.position, speed/4 * Time.deltaTime);
 			animator.SetBool ("isAttacking", false);
 		} else {
@@ -154,9 +176,10 @@ public class UnitSim : MonoBehaviour {
 	public void Attack() { 
 		if (elapsedTime > attackSpeed) {
 			target.GetComponent<UnitSim> ().takeDamage (damage);
+			animator.SetInteger ("AnimVariance", Random.Range(1, 2+1));
 			animator.SetTrigger ("Attack");
-
 			elapsedTime = 0.0f;
+			animator.SetBool ("isIdle", true);
 		}
 		elapsedTime += Time.deltaTime;
 
@@ -189,5 +212,8 @@ public class UnitSim : MonoBehaviour {
 		invuln = true;
 	}
 
+	public void setCombatType(string type){
+		combatType = type;
+	}
 
 }

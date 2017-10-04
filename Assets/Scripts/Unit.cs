@@ -79,7 +79,7 @@ public class Unit : MonoBehaviour {
 			Destroy (gameObject);
 		}
 
-		transform.position = new Vector3 (tileX, 1.25f, tileY);
+		transform.position = new Vector3 (tileX, 0.57f, tileY);
 
 
 	}
@@ -145,7 +145,15 @@ public class Unit : MonoBehaviour {
 			animator.SetBool ("isIdle", false);
 			animator.SetBool ("isMoving", false);
 			animator.SetBool ("isAttacking", false);
+			animator.SetInteger ("AnimVariance", Random.Range(1, 2+1));
 			animator.SetTrigger ("Attack");
+			break;
+		case State.Dead:
+			animator.SetBool ("isIdle", false);
+			animator.SetBool ("isMoving", false);
+			animator.SetBool ("isAttacking", false);
+			animator.SetInteger ("AnimVariance", Random.Range(1, 2+1));
+			animator.SetBool ("isDead", true);
 			break;
 		default:
 			break;
@@ -355,7 +363,7 @@ public class Unit : MonoBehaviour {
 			setUnitSize(Mathf.CeilToInt(MaxUnitSize * percentage));
 		} else {
 			setUnitSize (0);
-			setState (State.Dead);
+			//setState (State.Dead);
 			unitManager.requestDelete (this.gameObject);
 		}
 	}
@@ -540,4 +548,9 @@ public class Unit : MonoBehaviour {
 		return num;
 	}
 
+
+	public Animator getAnimator(){
+
+		return this.animator;
+	}
 }

@@ -116,6 +116,13 @@ public class UnitManager : MonoBehaviour {
 		}
 	}
 
+
+
+
+	public void requestDelete(GameObject deleted){
+		deadUnits.Add (deleted);
+	}
+
 	public void ScanForDeadUnits(){
 		if (deadUnits.Count > 0) {
 			foreach (GameObject unit in deadUnits) {
@@ -125,17 +132,13 @@ public class UnitManager : MonoBehaviour {
 		deadUnits.Clear ();
 	}
 
-
-	public void requestDelete(GameObject deleted){
-		deadUnits.Add (deleted);
-	}
-
 	public void DeleteUnit(GameObject deletedUnit){
 		int id = deletedUnit.GetComponent<Unit>().getUnitID();
 		mapManager.tileArray [unitArray [id].getTileX (), unitArray [id].getTileY ()].setIsOccupied (false, null);
+		unitArray [id].setState (Unit.State.Dead);
 		unitObjArray [id] = null;
 		unitArray [id] = null;
-		Destroy (deletedUnit.gameObject, 2f);
+		Destroy (deletedUnit.gameObject, 4f);
 	}
 
 	protected GameObject getAssociatedPrefab(UnitName unitName){

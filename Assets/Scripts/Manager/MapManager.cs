@@ -164,7 +164,7 @@ public class MapManager : MonoBehaviour {
 	public Vector3 TileCoordToWorldCoord(int x, int y){
 
 //		TileType tt = tileTypes [tiles [x, y]];
-		float ypos = 1.25f;//tt.playerYPosition;
+		float ypos = 0.57f;//tt.playerYPosition;
 		return new Vector3 (x, ypos, y);
 	}
 

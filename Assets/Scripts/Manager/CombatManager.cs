@@ -20,10 +20,12 @@ public class CombatManager : MonoBehaviour {
 	public float elapsedTime;
 	protected float introSimulationTime = 1.0f;
 	protected float maxSimulationTime = 16.0f;
-	protected float endSimulationTime = 17.0f;
+	protected float endSimulationTime = 22.0f;
 	SimulationState simState;
 	public enum SimulationState { Ready, Intro, Playing, Ending, End}
 
+
+	protected Unit attacker; //this is for animation purposes, the last swing at the end
 
 	// Use this for initialization
 	void Start () {
@@ -45,6 +47,7 @@ public class CombatManager : MonoBehaviour {
 
 	public void RequestCombatResolve(Unit initiator, Unit target, int dist){
 		initiator.setState (Unit.State.Done);
+		attacker = initiator;
 		game.clickManager.canClick = false;
 		game.cameraManager.setCameraState (CameraManager.CameraState.Simulation);
 
@@ -104,17 +107,18 @@ public class CombatManager : MonoBehaviour {
 			newUnit.GetComponent<UnitSim> ().setHealth(attacker.getHealthPerUnit ());
 			newUnit.GetComponent<UnitSim> ().setUnitSide (UnitSim.UnitSide.Attacker);
 			newUnit.GetComponent<UnitSim> ().combatManager = this;
+			newUnit.GetComponent<UnitSim> ().setCombatType (combatType);
 
 			if (combatType == "Melee") {
-				newUnit.GetComponent<UnitSim> ().setDamage(attacker.getMeleeAttack ());
+				newUnit.GetComponent<UnitSim> ().setDamage(attacker.getMeleeAttack ()/2);
 				newUnit.GetComponent<UnitSim> ().setRange (1);
 			} else if (combatType == "Ranged") {
-				newUnit.GetComponent<UnitSim> ().setDamage(attacker.getRangedAttack ());
+				newUnit.GetComponent<UnitSim> ().setDamage(attacker.getRangedAttack ()/2);
 				newUnit.GetComponent<UnitSim> ().setRange(attacker.getWeaponRange());
 			}
 			newUnit.GetComponent<UnitSim>().canAttack = true;
 
-			newUnit.GetComponent<UnitSim>().setDefense(attacker.getDefense ());
+			newUnit.GetComponent<UnitSim>().setDefense(attacker.getDefense ()/2);
 			newUnit.GetComponent<UnitSim>().setSpeed(attacker.getSpeed ());
 
 			//newUnit.transform.GetChild (0).gameObject.GetComponent<Renderer>().material.shader = attacker.getShaderOutline();
@@ -127,14 +131,16 @@ public class CombatManager : MonoBehaviour {
 			newUnit.GetComponent<UnitSim> ().setHealth(defender.getHealthPerUnit ());
 			newUnit.GetComponent<UnitSim> ().setUnitSide (UnitSim.UnitSide.Defender);
 			newUnit.GetComponent<UnitSim> ().combatManager = this;
+			newUnit.GetComponent<UnitSim> ().setCombatType (combatType);
 
 			//setting damage and whether we can attack
 			if (combatType == "Melee" && defender.isMelee ()) {
-				newUnit.GetComponent<UnitSim> ().setDamage(defender.getMeleeAttack ());
+				newUnit.GetComponent<UnitSim> ().setDamage(defender.getMeleeAttack ()/2);
+				newUnit.GetComponent<UnitSim> ().setRange(1);
 				newUnit.GetComponent<UnitSim> ().canAttack = true;
 			} else if (combatType == "Ranged" && defender.isRanged ()) {
 				if (defender.getWeaponRange () >= attacker.getWeaponRange ()) {
-					newUnit.GetComponent<UnitSim> ().setDamage(defender.getRangedAttack ());
+					newUnit.GetComponent<UnitSim> ().setDamage(defender.getRangedAttack ()/2);
 					newUnit.GetComponent<UnitSim> ().setRange(defender.getWeaponRange());
 					newUnit.GetComponent<UnitSim> ().canAttack = true;
 				}
@@ -142,7 +148,7 @@ public class CombatManager : MonoBehaviour {
 				newUnit.GetComponent<UnitSim> ().canAttack = false;
 			}
 
-			newUnit.GetComponent<UnitSim>().setDefense(defender.getDefense ());
+			newUnit.GetComponent<UnitSim>().setDefense(defender.getDefense ()/2);
 			newUnit.GetComponent<UnitSim>().setSpeed(defender.getSpeed ());
 
 			//newUnit.transform.GetChild (0).gameObject.GetComponent<Renderer> ().material.shader = defender.getShaderOutline();
@@ -201,24 +207,20 @@ public class CombatManager : MonoBehaviour {
 			simState = SimulationState.Playing;
 		}
 
-		if (attackerDeaths == requiredAttackerDeaths) {
+		if (attackerDeaths >= requiredAttackerDeaths) {
 			foreach (GameObject unit in AttackingUnits) {
 				unit.GetComponent<UnitSim> ().becomeInvuln ();
 			}
 		}
-		if (defenderDeaths == requiredDefenderDeaths) {
+		if (defenderDeaths >= requiredDefenderDeaths) {
 			foreach (GameObject unit in DefendingUnits) {
 				unit.GetComponent<UnitSim> ().becomeInvuln ();
 			}
 		}
 
-		if (attackerDeaths >= requiredAttackerDeaths && defenderDeaths >= requiredDefenderDeaths && simState != SimulationState.Ending) {
+		if (attackerDeaths >= requiredAttackerDeaths && defenderDeaths >= requiredDefenderDeaths && simState == SimulationState.Playing) {
 			simState = SimulationState.Ending;
-			elapsedTime = maxSimulationTime;
-			foreach (GameObject unit in AttackingUnits)
-				unit.GetComponent<UnitSim> ().StopSim ();
-			foreach (GameObject unit in DefendingUnits) 
-				unit.GetComponent<UnitSim> ().StopSim ();
+			elapsedTime = endSimulationTime - 2.0f;
 		}
 		if (elapsedTime >= maxSimulationTime && simState == SimulationState.Playing) {
 			simState = SimulationState.Ending;
@@ -233,12 +235,17 @@ public class CombatManager : MonoBehaviour {
 	}
 
 	void StopSimulation(){
-		ResetSimulation ();
+		foreach (GameObject unit in AttackingUnits)
+			unit.GetComponent<UnitSim> ().StopSim ();
+		foreach (GameObject unit in DefendingUnits) 
+			unit.GetComponent<UnitSim> ().StopSim ();
 		simulationRunning = false;
 		game.unitManager.ScanForDeadUnits ();
 		game.clickManager.canClick = true;
 		game.cameraManager.setCameraState (CameraManager.CameraState.Strategy);
 
+		attacker.getAnimator ().SetTrigger ("Attack");
+		ResetSimulation ();
 
 	}
 
@@ -356,7 +363,7 @@ public class CombatManager : MonoBehaviour {
 				if (rand > Defender.getMeleeExpertise ()) { //if random number overcomes them
 					successfulHits++;
 				}
-				totalDamage = successfulHits * (Attacker.getMeleeAttack () - Defender.getDefense ());
+				totalDamage = successfulHits * Mathf.Max(Attacker.getMeleeAttack () - Defender.getDefense (), 1);
 			}
 
 			else if (combatType == "Ranged") {
@@ -364,7 +371,7 @@ public class CombatManager : MonoBehaviour {
 				if (rand < Attacker.getRangedExpertise ()) {
 					successfulHits++;
 				}
-				totalDamage = successfulHits * (Attacker.getRangedAttack () - Defender.getDefense ());
+				totalDamage = successfulHits * Mathf.Max(Attacker.getRangedAttack () - Defender.getDefense (), 1);
 			}
 
 		}
