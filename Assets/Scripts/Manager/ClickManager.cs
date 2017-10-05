@@ -20,19 +20,25 @@ public class ClickManager : MonoBehaviour {
 	public bool canClick;
 
 	public GameObject selectedUnit;
+	public GameObject hoveredUnit;
 	public Tile selectedTile;
 	[SerializeField] private List<Tile> validTilesList; //used for highlighting movement
 	public Tile chosenTile = null; //where the unit will move
 
+
+	GameManager game;
 	[HideInInspector] public MapManager mapManager;
 	[HideInInspector] public UnitManager unitManager;
+	[HideInInspector] public TurnManager turnManager;
 
 	private bool isHologram = false;
 
 	// Use this for initialization
 	void Start () {
+		game = GetComponent<GameManager> ();
 		mapManager = GetComponent<MapManager> ();
 		unitManager = GetComponent<UnitManager> ();
+		turnManager = GetComponent<TurnManager> ();
 		selectedUnit = null;
 		selectedTile = null;
 		//chosenTile = null;
@@ -70,31 +76,34 @@ public class ClickManager : MonoBehaviour {
 		//NO UNIT SELECTED
 		if (selectedUnit == null) {
 			//can we select this unit?
-			if (tile.isOccupied ()){
-				switch (tile.getOccupyingUnit ().GetComponent<Unit> ().getState ()) {
-				case (Unit.State.Ready):
+			if (tile.isOccupied ()) { 
+				if (tile.getOccupyingUnit ().GetComponent<Unit> ().faction == turnManager.getCurrentTurn ()) {
+					switch (tile.getOccupyingUnit ().GetComponent<Unit> ().getState ()) {
+					case (Unit.State.Ready):
 					//Debug.Log ("Selecting new unit");
-					chosenTile = null;
-					SelectUnit (tile.getOccupyingUnit ());
+						chosenTile = null;
+						SelectUnit (tile.getOccupyingUnit ());
 
-					selectedUnit.GetComponent<Unit> ().setState (Unit.State.ChooseMove);
+						selectedUnit.GetComponent<Unit> ().setState (Unit.State.ChooseMove);
 
 					//highlight moves of our unit
-					mapManager.cleanValidMovesTilesList ();
-					mapManager.showValidMoves (selectedUnit, tile, selectedUnit.GetComponent<Unit> ().getSpeed (), "Move");
-					validTilesList = mapManager.getValidMovesTilesList (); //retrieve list of tiles
-					HighlightTiles ("Blue"); //of valid tiles list
+						mapManager.cleanValidMovesTilesList ();
+						mapManager.showValidMoves (selectedUnit, tile, selectedUnit.GetComponent<Unit> ().getSpeed (), "Move");
+						validTilesList = mapManager.getValidMovesTilesList (); //retrieve list of tiles
+						HighlightTiles ("Blue"); //of valid tiles list
 
-					break;
-				default:
-					Debug.Log ("Unit State: " + tile.getOccupyingUnit ().GetComponent<Unit> ().getState ());
-					break;
+						break;
+					default:
+						Debug.Log ("Unit State: " + tile.getOccupyingUnit ().GetComponent<Unit> ().getState ());
+						break;
+					}
+
+
+
+				} else {
+					//tile not occupied. can't do anything...
+					return;
 				}
-
-
-
-			} else {
-				//tile not occupied. can't do anything...
 				return;
 			}
 			return;
@@ -147,11 +156,11 @@ public class ClickManager : MonoBehaviour {
 						selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
 						DeselectUnit ();
 
+						canClick = false;
 
 					} else if (tile.isOccupied () && tile.getOccupyingUnit() != selectedUnit) {
 						//check if we clicked on ally or friendly...
-						switch (tile.getOccupyingUnit ().GetComponent<Unit> ().faction) {
-						case UnitManager.Faction.Enemy:
+						if (tile.getOccupyingUnit ().GetComponent<Unit> ().faction != selectedUnit.GetComponent<Unit>().faction) {
 							Debug.Log ("Targeted enemy");
 							//Calculate weapon range
 							int dist = mapManager.GetTileDistance (tile, chosenTile);
@@ -166,6 +175,8 @@ public class ClickManager : MonoBehaviour {
 								DeselectUnit ();
 
 
+								canClick = false;
+
 							} else if (dist >= 2 && selectedUnit.GetComponent<Unit> ().isRanged() && selectedUnit.GetComponent<Unit>().getWeaponRange() >= dist) {
 								selectedUnit.GetComponent<Unit> ().setIsAttacking(true);
 								selectedUnit.GetComponent<Unit> ().setTarget (tile.getOccupyingUnit ().GetComponent<Unit>());
@@ -177,24 +188,15 @@ public class ClickManager : MonoBehaviour {
 								DeselectUnit ();
 
 
+								canClick = false;
+
 							} else {
 								Debug.Log ("Failed to attack, dist = " + dist);
 								selectedUnit.GetComponent<Unit> ().setIsAttacking(false);
 								selectedUnit.GetComponent<Unit> ().setTarget (null);
 								return;
 							}
-							canClick = false;
-
-							break;
-						case UnitManager.Faction.Ally:
-							Debug.Log ("Hit Ally");
-							break;
-						default:  //end of checking what enemy we hit
-							Debug.Log ("Weird tag hit");
-							break; 
-
 						}
-
 					} else {
 						Debug.Log ("Selected an empty attack space...");
 					}
@@ -227,7 +229,10 @@ public class ClickManager : MonoBehaviour {
 	public void SelectUnit(GameObject unit){
 		unit.GetComponent<Unit> ().setIsSelected (true);
 		selectedUnit = unit;
+		hoveredUnit = null;
 		StartHologram ();
+		game.uiManager.UpdateUnitStatsText();
+		game.uiManager.UpdateHoveredUnitStatsText ();
 	}
 
 	public void SelectTile(Tile tile){
@@ -256,7 +261,15 @@ public class ClickManager : MonoBehaviour {
 			RemoveHighlight ();
 			mapManager.cleanMap ();
 			mapManager.cleanValidMovesTilesList ();
+
+			game.uiManager.updateText ();
+
 		}
+	}
+
+	public void setHoveredUnit(GameObject unit){
+		hoveredUnit = unit;
+		game.uiManager.UpdateHoveredUnitStatsText ();
 	}
 
 	public void DeselectTile(){

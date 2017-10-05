@@ -25,8 +25,10 @@ public class Unit : MonoBehaviour {
 
 
 	public bool selected;
+	public List<GameObject> Parts; //parts that may need to be changed
 	[HideInInspector]public Shader shaderNormal;
 	[HideInInspector]public Shader shaderOutline;
+	[HideInInspector]public Material factionColour;
 
 	[SerializeField] protected int tileX;
 	[SerializeField] protected int tileY;
@@ -34,9 +36,10 @@ public class Unit : MonoBehaviour {
 	List<Node> currentPath = null;
 
 	[HideInInspector]public UnitManager unitManager;
-	public UnitManager.Faction faction;
-
 	[HideInInspector] public CombatManager combatManager;
+	[HideInInspector] public GameManager game;
+
+	public UnitManager.Faction faction;
 
 	//STATS FOR THE UNIT
 	public enum MeleeWeaponType { None, Sword, Spear, Mace };
@@ -107,8 +110,6 @@ public class Unit : MonoBehaviour {
 		checkDefense (); //setting armoured tag
 		if(isArmoured() || isShielded())
 			setSpeed (getSpeed () - 1);
-		if (isMounted ())
-			setSpeed (getSpeed () * 2);
 		if (getDefense () > 20)
 			setSpeed (getSpeed () - 1);
 
@@ -119,15 +120,23 @@ public class Unit : MonoBehaviour {
 
 		setHealth (MaxHealth);
 		HealthPerUnit = MaxHealth / MaxUnitSize;
+
+		foreach (GameObject part in Parts) {
+			part.GetComponent<Renderer> ().material = factionColour;
+		}
+
+		setOutline (false);
+
 		NewTurn ();
 	}
 
-	public void checkAnimation(){
+	public void checkState(){
 		switch (unitState) {
 		case State.Ready:
 		case State.ChooseAction:
 		case State.ChooseMove:
 		case State.Done:
+			attacking = false;
 			animator.SetBool ("isIdle", true);
 			animator.SetBool ("isMoving", false);
 			animator.SetBool ("isAttacking", false);
@@ -145,8 +154,9 @@ public class Unit : MonoBehaviour {
 			animator.SetBool ("isIdle", false);
 			animator.SetBool ("isMoving", false);
 			animator.SetBool ("isAttacking", false);
-			animator.SetInteger ("AnimVariance", Random.Range(1, 2+1));
+			animator.SetInteger ("AnimVariance", Random.Range (1, 2 + 1));
 			animator.SetTrigger ("Attack");
+			attacking = false;
 			break;
 		case State.Dead:
 			animator.SetBool ("isIdle", false);
@@ -165,7 +175,7 @@ public class Unit : MonoBehaviour {
 	public void setState(State newState){ //used to access the other states of units
 		unitState = newState;
 
-		checkAnimation ();
+		checkState ();
 	}
 
 	public State getState(){
@@ -182,9 +192,13 @@ public class Unit : MonoBehaviour {
 
 	public void setOutline(bool b){
 		if (b) {
-			transform.GetChild (0).gameObject.GetComponent<Renderer> ().material.shader = shaderOutline;
+			/*foreach (GameObject part in Parts) {
+				part.GetComponent<Renderer> ().material.shader = shaderOutline;
+			}*/
 		} else {
-			transform.GetChild(0).gameObject.GetComponent<Renderer>().material.shader = shaderNormal;
+			foreach (GameObject part in Parts) {
+				part.GetComponent<Renderer> ().material.shader = shaderNormal;
+			}
 		}
 	}
 
@@ -294,9 +308,11 @@ public class Unit : MonoBehaviour {
 
 
 		if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (getTileX (), getTileY ())) < 0.01f && currentPath == null) {
-			if (!attacking)
-				setState(State.Done);
-			else if(attacking) {
+			if (!attacking) {
+				setState (State.Done);
+				game.clickManager.canClick = true; //longer way to request for click manager
+				unitManager.checkEndTurn();
+			} else if(attacking) {
 				setState(State.Attack);
 
 				transform.LookAt (map.TileCoordToWorldCoord(target.GetComponent<Unit>().getTileX(), target.GetComponent<Unit>().getTileY ()));
@@ -306,7 +322,7 @@ public class Unit : MonoBehaviour {
 			}
 		}
 		else{
-			transform.position = Vector3.MoveTowards (transform.position, map.TileCoordToWorldCoord (getTileX (), getTileY ()), Speed / 2 * Time.deltaTime);
+			transform.position = Vector3.MoveTowards (transform.position, map.TileCoordToWorldCoord (getTileX (), getTileY ()), 3 * Time.deltaTime);
 			transform.LookAt (map.TileCoordToWorldCoord (getTileX (), getTileY ()));
 		}
 	}

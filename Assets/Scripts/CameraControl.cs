@@ -8,12 +8,12 @@ public class CameraControl : MonoBehaviour {
 	protected float minMoveSpeed = 2;
 	protected float maxMoveSpeed = 10;
 	protected float rotSpeed = 90;
-	float scrollSpeed = 4.0f;
+	float scrollSpeed = 5.0f;
 
 	float percentage;
 	protected float heightDest;
-	protected float heightMax = 10f;
-	protected float heightMid = 4.5f;
+	protected float heightMax = 12f;
+	protected float heightMid = 6.5f;
 	protected float heightMin = 1.7f;
 	protected float upperEulerAngle = 56.0f;
 	protected float lowerEulerAngle = 22.690f;

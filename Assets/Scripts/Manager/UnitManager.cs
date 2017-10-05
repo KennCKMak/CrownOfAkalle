@@ -12,6 +12,7 @@ using UnityEngine;
 
 public class UnitManager : MonoBehaviour {
 	public enum Faction{
+		Player,
 		Ally,
 		Enemy,
 		Neutral
@@ -20,23 +21,23 @@ public class UnitManager : MonoBehaviour {
 	public enum UnitName {
 		TemplateUnit,
 		SwordsmanUnit,
-		ArcherUnit
+		ArcherUnit,
+		KnightUnit,
+		SpearmanUnit
 	}
-	int numberOfUnits = 3;
+
+	public Material[] FactionColours;
 	public GameObject[] UnitPrefabs;
 	public GameObject[] UnitSimPrefabs;
 
 
-
-
-
-	public GameObject[] unitObjArray;
-	public Unit[] unitArray;
-	private List<GameObject> deadUnits;
 	int ArraySize;
+	protected GameObject[] unitObjArray;
+	protected Unit[] unitArray;
+	protected List<GameObject> deadUnits;
 	//public List<GameObject> Units;
 
-
+	GameManager game;
 	MapManager mapManager;
 	CombatManager combatManager;
 
@@ -45,13 +46,16 @@ public class UnitManager : MonoBehaviour {
 	protected Shader shaderOutlineGreen;
 	protected Shader shaderOutlineRed;
 
+
+
 	// Use this for initialization
 	void Start () {
+		game = GetComponent<GameManager> ();
 		mapManager = GetComponent<MapManager> ();	
 		combatManager = GetComponent<CombatManager> ();
 
 
-		ArraySize = 20;
+		ArraySize = 30;
 
 		unitObjArray = new GameObject[ArraySize];
 		unitArray = new Unit[ArraySize];
@@ -62,6 +66,7 @@ public class UnitManager : MonoBehaviour {
 		shaderOutlineBlack = Shader.Find ("Outline/Black");
 		shaderOutlineGreen = Shader.Find ("Outline/Green");
 		shaderOutlineRed = Shader.Find ("Outline/Red");
+
 
 	}
 	
@@ -78,6 +83,10 @@ public class UnitManager : MonoBehaviour {
 	}
 
 	public void CreateUnit(UnitName unitName, int x, int y, Faction faction){
+		if(mapManager.tileArray[x,y].isOccupied())
+			return;
+		
+
 		int newID;
 		bool loopRunning = true;
 		while (loopRunning == true) {
@@ -91,14 +100,17 @@ public class UnitManager : MonoBehaviour {
 				mapManager.tileArray [x, y].setIsOccupied (true, newUnit);
 
 				unitScript.faction = faction;
+				unitScript.factionColour = FactionColours[(int)faction];
+
 				unitScript.shaderNormal = shaderStandard;
-				if(faction == Faction.Ally)
+				if(faction == Faction.Player)
 					unitScript.shaderOutline = shaderOutlineGreen;
 				else if(faction == Faction.Enemy)
 					unitScript.shaderOutline = shaderOutlineRed;
 				else 
 					unitScript.shaderOutline = shaderOutlineBlack;
 				//setting script values
+				unitScript.game = game;
 				unitScript.map = mapManager;
 				unitScript.combatManager = combatManager;
 				unitScript.unitManager = this;
@@ -159,5 +171,39 @@ public class UnitManager : MonoBehaviour {
 		}
 	}
 
+	public void DeleteAllUnits(){
+		game.clickManager.Deselect ();
+		for (int i = 0; i < ArraySize; i++) {
+			if (unitObjArray [i] != null) {
+				deadUnits.Add(unitObjArray[i]);
+			}
+		}
+		ScanForDeadUnits ();
+	}
+
+	public void DeleteAllFactionUnits(Faction faction){
+
+		for (int i = 0; i < ArraySize; i++) {
+			if (unitObjArray [i] != null && unitArray [i].faction == faction) {
+				deadUnits.Add (unitObjArray [i]);
+			}
+		}
+		ScanForDeadUnits ();
+	}
+
+	public void checkEndTurn(){
+		bool endTurn = true;
+		Faction currFaction = game.turnManager.getCurrentTurn();
+		for (int i = 0; i < ArraySize; i++) {
+			if (unitArray[i] != null){
+				if (unitArray [i].faction == currFaction && unitArray [i].getState () != Unit.State.Done) {
+					endTurn = false;
+					return;
+				}
+			}
+		}
+		if (endTurn)
+			game.turnManager.switchTurn ();
+	}
 
 }

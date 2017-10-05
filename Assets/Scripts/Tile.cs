@@ -50,6 +50,7 @@ public class Tile : MonoBehaviour {
 			if (isOccupied ()) {
 				if (!getOccupyingUnit ().GetComponent<Unit> ().isSelected ()) {
 					getOccupyingUnit ().GetComponent<Unit> ().setOutline (true);
+					clickManager.setHoveredUnit (getOccupyingUnit ());
 				}
 			}
 		}
@@ -60,6 +61,8 @@ public class Tile : MonoBehaviour {
 		if (isOccupied ()) {
 			if (!getOccupyingUnit ().GetComponent<Unit> ().isSelected ()) {
 				getOccupyingUnit ().GetComponent<Unit> ().setOutline (false);
+				if(clickManager.selectedUnit != clickManager.hoveredUnit)
+					clickManager.setHoveredUnit (null);
 			}
 		}
 	}

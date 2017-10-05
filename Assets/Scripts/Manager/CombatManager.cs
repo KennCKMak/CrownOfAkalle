@@ -24,8 +24,11 @@ public class CombatManager : MonoBehaviour {
 	SimulationState simState;
 	public enum SimulationState { Ready, Intro, Playing, Ending, End}
 
+	protected bool skipSimulation;
+
 
 	protected Unit attacker; //this is for animation purposes, the last swing at the end
+	protected Unit defender;
 
 	// Use this for initialization
 	void Start () {
@@ -33,6 +36,7 @@ public class CombatManager : MonoBehaviour {
 		AttackingUnits = new List<GameObject> ();
 		DefendingUnits = new List<GameObject> ();
 		simulationRunning = false;
+		skipSimulation = false;
 	}
 
 
@@ -46,8 +50,10 @@ public class CombatManager : MonoBehaviour {
 
 
 	public void RequestCombatResolve(Unit initiator, Unit target, int dist){
-		initiator.setState (Unit.State.Done);
+		
 		attacker = initiator;
+		defender = target;
+
 		game.clickManager.canClick = false;
 		game.cameraManager.setCameraState (CameraManager.CameraState.Simulation);
 
@@ -76,7 +82,10 @@ public class CombatManager : MonoBehaviour {
 		}
 
 		//Debug.Log ("AttackerDeaths: " + attackerDeaths + ". DefenderDeaths: " + Defender);
-		SetupSimulation (Attacker, Defender, "Melee");
+		if (!skipSimulation)
+			SetupSimulation (Attacker, Defender, "Melee");
+		else
+			StopSimulation ();
 	}
 
 	void ResolveCombatRanged(Unit Attacker, Unit Defender){
@@ -96,7 +105,10 @@ public class CombatManager : MonoBehaviour {
 		}
 
 		//Debug.Log ("AttackerDeaths: " + attackerDeaths + ". DefenderDeaths: " + Defender);
-		SetupSimulation (Attacker, Defender, "Ranged");
+		if (!skipSimulation)
+			SetupSimulation (Attacker, Defender, "Ranged");
+		else
+			StopSimulation ();
 
 	}
 
@@ -108,13 +120,19 @@ public class CombatManager : MonoBehaviour {
 			newUnit.GetComponent<UnitSim> ().setUnitSide (UnitSim.UnitSide.Attacker);
 			newUnit.GetComponent<UnitSim> ().combatManager = this;
 			newUnit.GetComponent<UnitSim> ().setCombatType (combatType);
+			newUnit.GetComponent<UnitSim> ().factionColour = attacker.factionColour;
+
+			newUnit.GetComponent<UnitSim> ().setIsMounted (attacker.isMounted ());
 
 			if (combatType == "Melee") {
 				newUnit.GetComponent<UnitSim> ().setDamage(attacker.getMeleeAttack ()/2);
 				newUnit.GetComponent<UnitSim> ().setRange (1);
+				newUnit.GetComponent<UnitSim> ().setMeleeWeaponType (attacker.getMeleeWeaponType ());
+
 			} else if (combatType == "Ranged") {
 				newUnit.GetComponent<UnitSim> ().setDamage(attacker.getRangedAttack ()/2);
 				newUnit.GetComponent<UnitSim> ().setRange(attacker.getWeaponRange());
+				newUnit.GetComponent<UnitSim> ().setRangedWeaponType (attacker.getRangedWeaponType ());
 			}
 			newUnit.GetComponent<UnitSim>().canAttack = true;
 
@@ -132,16 +150,21 @@ public class CombatManager : MonoBehaviour {
 			newUnit.GetComponent<UnitSim> ().setUnitSide (UnitSim.UnitSide.Defender);
 			newUnit.GetComponent<UnitSim> ().combatManager = this;
 			newUnit.GetComponent<UnitSim> ().setCombatType (combatType);
+			newUnit.GetComponent<UnitSim> ().factionColour = defender.factionColour;
+
+			newUnit.GetComponent<UnitSim> ().setIsMounted (defender.isMounted ());
 
 			//setting damage and whether we can attack
 			if (combatType == "Melee" && defender.isMelee ()) {
 				newUnit.GetComponent<UnitSim> ().setDamage(defender.getMeleeAttack ()/2);
 				newUnit.GetComponent<UnitSim> ().setRange(1);
+				newUnit.GetComponent<UnitSim> ().setMeleeWeaponType (defender.getMeleeWeaponType ());
 				newUnit.GetComponent<UnitSim> ().canAttack = true;
 			} else if (combatType == "Ranged" && defender.isRanged ()) {
 				if (defender.getWeaponRange () >= attacker.getWeaponRange ()) {
 					newUnit.GetComponent<UnitSim> ().setDamage(defender.getRangedAttack ()/2);
 					newUnit.GetComponent<UnitSim> ().setRange(defender.getWeaponRange());
+					newUnit.GetComponent<UnitSim> ().setRangedWeaponType (defender.getRangedWeaponType ());
 					newUnit.GetComponent<UnitSim> ().canAttack = true;
 				}
 			} else {
@@ -166,22 +189,39 @@ public class CombatManager : MonoBehaviour {
 		Vector3 AttackerPos = new Vector3();
 		Vector3 DefenderPos = new Vector3();
 		switch (combatType) {
-		case "Melee": //distance of 7+7 from each other
-			AttackerPos = new Vector3 (500.0f, 0.245f, -8);
-			DefenderPos = new Vector3 (500.0f, 0.245f, 8);
+
+
+		case "Melee": 
+			if (attacker.faction == UnitManager.Faction.Player) {
+				AttackerPos = new Vector3 (500.0f, 0.245f, -8);
+				DefenderPos = new Vector3 (500.0f, 0.245f, 8);
+			} else {
+				AttackerPos = new Vector3 (500.0f, 0.245f, 8);
+				DefenderPos = new Vector3 (500.0f, 0.245f, -8);
+			}
 			SpawnUnitsAt (AttackerPos, attacker.faction, DefenderPos, defender.faction);
 			break;
 		case "Ranged":
-			AttackerPos = new Vector3 (500.0f, 0.245f, -10);
-			DefenderPos = new Vector3 (500.0f, 0.245f, 10);
+			if (attacker.faction == UnitManager.Faction.Player) {
+				AttackerPos = new Vector3 (500.0f, 0.245f, -8);
+				DefenderPos = new Vector3 (500.0f, 0.245f, 8);
+			} else { 
+				AttackerPos = new Vector3 (500.0f, 0.245f, 8);
+				DefenderPos = new Vector3 (500.0f, 0.245f, -8);
+			}
 			SpawnUnitsAt (AttackerPos, attacker.faction, DefenderPos, defender.faction);
 			break;
 		default:
 			break;
 		}
-		Vector3 camPos = game.cameraManager.CameraSimulation.transform.position;
-		camPos.z = AttackerPos.z-7;
-		game.cameraManager.CameraSimulation.transform.position = camPos;
+
+
+		if (attacker.faction == UnitManager.Faction.Player || attacker.faction == UnitManager.Faction.Ally)
+			game.cameraManager.CameraSimulation.transform.position = new Vector3(500, 5, AttackerPos.z-4);
+		else
+			game.cameraManager.CameraSimulation.transform.position = new Vector3(500, 5, DefenderPos.z-4);
+		game.cameraManager.CameraSimulation.transform.rotation = Quaternion.identity;
+			
 
 		StartSimulation ();
 	}
@@ -245,15 +285,21 @@ public class CombatManager : MonoBehaviour {
 		game.cameraManager.setCameraState (CameraManager.CameraState.Strategy);
 
 		attacker.getAnimator ().SetTrigger ("Attack");
+		attacker.GetComponent<Unit> ().setState (Unit.State.Done);
+		defender.getAnimator ().SetTrigger ("TakeDamage");
+		game.unitManager.checkEndTurn ();
+
+
+
 		ResetSimulation ();
 
 	}
 
 	void SpawnUnitsAt (Vector3 attackingPos, UnitManager.Faction attackerFaction, 
 		Vector3 defendingPos, UnitManager.Faction defenderFaction){
-		//spawning attackers, grid 6 by x
-		SpawnFormation(attackingPos, AttackingUnits, 6, attackerFaction);
-		SpawnFormation(defendingPos, DefendingUnits, 6, defenderFaction);
+		//spawning attackers, 
+		SpawnFormation(attackingPos, AttackingUnits, attackerFaction);
+		SpawnFormation(defendingPos, DefendingUnits, defenderFaction);
 
 	}
 
@@ -285,17 +331,25 @@ public class CombatManager : MonoBehaviour {
 		}
 	}
 
-	void SpawnFormation(Vector3 start, List<GameObject> unitList, int numPerLine, UnitManager.Faction faction){
+	void SpawnFormation(Vector3 start, List<GameObject> unitList, UnitManager.Faction faction){
 		//start at 499.5
 		int mirror = 1;
 		if (faction == UnitManager.Faction.Enemy)
 			mirror = -1;
 
+
+
+		//0.6 for melee
+		int numPerLine = 8;
+		float disHorizontal = 0.55f; //between columns
+		float disVertical = 0.55f; //between rows
+		if (unitList [0].GetComponent<UnitSim> ().isMounted ()) {
+			disHorizontal = 0.6f;
+			disVertical = 0.85f;
+			numPerLine = 6;
+		}
 		int lines = Mathf.FloorToInt(unitList.Count/numPerLine);
 		int unitsSpawned = 0;
-
-		float disHorizontal = 0.6f; //between columns
-		float disVertical = 0.6f; //between rows
 
 		//spawn in lines
 		float xStartPos = start.x - (numPerLine / 2) * disHorizontal * mirror + (disHorizontal/2)* mirror;
@@ -377,8 +431,13 @@ public class CombatManager : MonoBehaviour {
 		}
 
 		//modifiers
-		if (Defender.isMounted () && Attacker.getMeleeWeaponType () == Unit.MeleeWeaponType.Spear)
+		if (Attacker.isMounted () && Defender.getMeleeWeaponType () != Unit.MeleeWeaponType.Spear)
 			totalDamage *= 2;
+		if (Attacker.isMounted () && Defender.getMeleeWeaponType () == Unit.MeleeWeaponType.Spear)
+			totalDamage /= 4;
+
+		if (Defender.isMounted () && Attacker.getMeleeWeaponType () == Unit.MeleeWeaponType.Spear)
+			totalDamage *= 3;
 		if (Defender.isArmoured ()) {
 			if (Attacker.getMeleeWeaponType () == Unit.MeleeWeaponType.Mace || Attacker.getRangedWeaponType () == Unit.RangedWeaponType.Crossbow)
 				totalDamage *= 2;
@@ -388,5 +447,13 @@ public class CombatManager : MonoBehaviour {
 		//Debug.Log ("Successful Hits: " + successfulHits + ". Damage = " + totalDamage);
 		return totalDamage;
 
+	}
+
+	public void setSkippingSimulation(bool b){
+		skipSimulation = b;
+	}
+
+	public bool isSkippingSimulation(){
+		return skipSimulation;
 	}
 }

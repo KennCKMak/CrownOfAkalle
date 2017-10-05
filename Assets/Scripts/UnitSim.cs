@@ -22,7 +22,13 @@ public class UnitSim : MonoBehaviour {
 	[SerializeField]protected int speed;
 
 
+	protected bool mounted;
+	protected Unit.MeleeWeaponType MeleeWeapon;
+	protected Unit.RangedWeaponType RangedWeapon;
 
+
+	public List<GameObject> Parts; //parts that may need to be changed
+	[HideInInspector]public Material factionColour;
 
 
 	protected float range;
@@ -47,6 +53,9 @@ public class UnitSim : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
+		foreach (GameObject part in Parts) {
+			part.GetComponent<Renderer> ().material = factionColour;
+		}
 	}
 	
 	// Update is called once per frame
@@ -61,16 +70,19 @@ public class UnitSim : MonoBehaviour {
 
 	public void StartSim(){
 		float num = ((float)Random.Range (1, 20 + 1) / 100 * Mathf.Pow (-1, Random.Range (1, 2 + 1)));
-			attackSpeed = 2.00f + num;
+			attackSpeed = 1.20f + num;
+
 
 		hasAction = true;
 		invuln = false;
 		FindTarget ();
+		elapsedTime = attackSpeed;
 		animator.SetBool ("isIdle", false);
 	}
 
 	public void StopSim(){
 		hasAction = false;
+		GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
 		animator.SetBool ("isIdle", true);
 		animator.SetBool ("isAttacking", false);
 		animator.SetBool ("isMoving", false);
@@ -84,7 +96,8 @@ public class UnitSim : MonoBehaviour {
 
 	public void Died(){
 		isDead = true;
-
+		GetComponent<CapsuleCollider> ().enabled = false;
+		GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
 		if (!invuln) {
 			animator.SetBool ("isDead", true);
 			animator.SetInteger ("AnimVariance", Random.Range(1, 2+1));
@@ -132,7 +145,7 @@ public class UnitSim : MonoBehaviour {
 	}
 
 	public bool hasTarget(){
-		if (target == null)
+		if (target == null) 
 			return false;
 		if (!target.GetComponent<UnitSim> ().isDead)
 			return true;
@@ -142,7 +155,7 @@ public class UnitSim : MonoBehaviour {
 
 	public void Action(){
 		if (combatType == "Melee")
-			animationRange = range;
+			animationRange = range/2;
 		else
 			animationRange = range*2.5f;
 		if(target){
@@ -175,10 +188,14 @@ public class UnitSim : MonoBehaviour {
 
 	public void Attack() { 
 		if (elapsedTime > attackSpeed) {
+			if (target.GetComponent<UnitSim> ().isMounted () && MeleeWeapon == Unit.MeleeWeaponType.Spear)
+				damage *= 3;
 			target.GetComponent<UnitSim> ().takeDamage (damage);
 			animator.SetInteger ("AnimVariance", Random.Range(1, 2+1));
 			animator.SetTrigger ("Attack");
-			elapsedTime = 0.0f;
+			elapsedTime = 0.0f;	
+			float num = ((float)Random.Range (1, 20 + 1) / 100 * Mathf.Pow (-1, Random.Range (1, 2 + 1)));
+			attackSpeed = 1.20f + num;
 			animator.SetBool ("isIdle", true);
 		}
 		elapsedTime += Time.deltaTime;
@@ -216,4 +233,29 @@ public class UnitSim : MonoBehaviour {
 		combatType = type;
 	}
 
+
+	public bool isMounted(){
+		return mounted;
+	}
+
+	public void setIsMounted(bool b){
+		mounted = b;
+	}
+
+	public void setMeleeWeaponType(Unit.MeleeWeaponType newMeleeWeapon){
+		MeleeWeapon = newMeleeWeapon;
+	}
+
+	public Unit.MeleeWeaponType getMeleeWeaponType(){
+		return MeleeWeapon;
+	}
+
+	public void setRangedWeaponType(Unit.RangedWeaponType newRangedWeapon){
+		RangedWeapon = newRangedWeapon;
+	}
+
+	public Unit.RangedWeaponType getRangedWeaponType(){
+		return RangedWeapon;
+	}
+		
 }
