@@ -7,6 +7,8 @@ Date		Day		Hours										Total
 03/10/2017	Tue		08:00-15:54	17:00-17:10	20:00-23:20					10 1/3
 04/10/2017	Wed		15:00-19:05	19:45-20:30							4 5/6
 
+11/12/2017	Mon		09:12-12:10
+
 						Total Hours: 34.83 hours
 
 TODO: 
@@ -15,8 +17,17 @@ Draw a path of the unit moving in strategy movement
 A menu that pops up when you arrive at a location (Attack, Wait)
 User Interface improvements
 Outline doesn't work when you package it
-A* pathfinding for the Simulation maybe
 
+Title Screen, Splash Screen -> Game Mode
+
+Music - BGM Switching, SFX
+AI - choose and attack
+
+Terrain placement for ramps and stuff?
+MapBuilding
+
+Update how combat works
+Fix simulacrum code
 
 
 
@@ -75,3 +86,7 @@ A* pathfinding for the Simulation maybe
 - smart ending - checks if all units are done automatically then switches
 - Faction colours
 - Added spearmen
+
+11-12-2017 - Mon - 09:12
+- Health Bars added
+- Scaling Health Bars

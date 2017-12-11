@@ -37,9 +37,11 @@ public class UnitManager : MonoBehaviour {
 	protected List<GameObject> deadUnits;
 	//public List<GameObject> Units;
 
-	GameManager game;
+	public GameManager game;
 	MapManager mapManager;
 	CombatManager combatManager;
+
+	[SerializeField] protected GameObject HealthBarPrefab;
 
 	protected Shader shaderStandard;
 	protected Shader shaderOutlineBlack;
@@ -53,7 +55,6 @@ public class UnitManager : MonoBehaviour {
 		game = GetComponent<GameManager> ();
 		mapManager = GetComponent<MapManager> ();	
 		combatManager = GetComponent<CombatManager> ();
-
 
 		ArraySize = 30;
 
@@ -114,6 +115,8 @@ public class UnitManager : MonoBehaviour {
 				unitScript.map = mapManager;
 				unitScript.combatManager = combatManager;
 				unitScript.unitManager = this;
+
+				unitScript.SetHealthBarPrefab (HealthBarPrefab);
 				//setting ID-Array relation
 				unitObjArray [newID] = newUnit;
 				unitArray [newID] = unitScript;

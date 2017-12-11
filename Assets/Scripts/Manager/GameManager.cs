@@ -36,35 +36,19 @@ public class GameManager : MonoBehaviour {
 	void Update () {
 		if (Input.GetMouseButtonDown (1))
 			clickManager.Deselect ();
-		/*
-		if (Input.GetKeyDown (KeyCode.Alpha1)) {
 
-			unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 8, 3, UnitManager.Faction.Player);
-			unitManager.CreateUnit (UnitManager.UnitName.ArcherUnit, 9, 3, UnitManager.Faction.Player);
-
-
-			unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 8, 7, UnitManager.Faction.Enemy);
-			unitManager.CreateUnit (UnitManager.UnitName.ArcherUnit, 9, 7, UnitManager.Faction.Enemy);
-
-			for(int i = 0; i < 4; i++){
-				unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 8 + i, 3, UnitManager.Faction.Ally);
-				unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 8 + i, 17, UnitManager.Faction.Ally);
-			}
-		}
-		if (Input.GetKeyDown (KeyCode.Alpha2)) {
+		if (Input.GetKeyDown (KeyCode.Alpha2)) 
 			unitManager.DeleteAllUnits ();
-		}
-		if (Input.GetKeyDown (KeyCode.Alpha3)) {
+		
+		if (Input.GetKeyDown (KeyCode.Alpha3)) 
 			unitManager.DeleteAllFactionUnits (UnitManager.Faction.Player);
-		}
 
+		if (Input.GetKeyDown (KeyCode.Alpha4)) 
+			unitManager.DeleteAllFactionUnits (UnitManager.Faction.Enemy);
 
-
-
-		if (Input.GetKeyDown (KeyCode.Space)) {
+		if (Input.GetKeyDown (KeyCode.Space)) 
 			unitManager.RestoreMovement (UnitManager.Faction.Player);
-		}
-	*/
+		
 
 	}
 }

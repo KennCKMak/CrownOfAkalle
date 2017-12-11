@@ -57,6 +57,9 @@ public class Unit : MonoBehaviour {
 	[SerializeField]protected float HealthPerUnit;
 	[SerializeField]protected int Defense;
 	[SerializeField]protected bool shielded;
+	private GameObject HealthBarPrefab;
+	private HealthBar healthBar;
+
 
 	[SerializeField]protected bool mounted;
 	[SerializeField]protected bool armoured;
@@ -84,7 +87,6 @@ public class Unit : MonoBehaviour {
 
 		transform.position = new Vector3 (tileX, 0.57f, tileY);
 
-
 	}
 
 
@@ -99,6 +101,8 @@ public class Unit : MonoBehaviour {
 		if (unitState == State.Action){
 			Move ();
 		}
+
+		UpdateHealthBar ();
 
 	}
 
@@ -124,6 +128,7 @@ public class Unit : MonoBehaviour {
 		foreach (GameObject part in Parts) {
 			part.GetComponent<Renderer> ().material = factionColour;
 		}
+		CreateHealthBar ();
 
 		setOutline (false);
 
@@ -422,6 +427,23 @@ public class Unit : MonoBehaviour {
 			return true;
 		else
 			return false;
+	}
+
+	public void SetHealthBarPrefab(GameObject prefab){
+		HealthBarPrefab = prefab;
+	}
+
+	public void CreateHealthBar(){
+		GameObject newHealthBar = Instantiate (HealthBarPrefab) as GameObject;
+		newHealthBar.transform.SetParent(game.uiManager.canvas.transform);
+		newHealthBar.GetComponent<HealthBar> ().SetTarget (this.transform);
+		newHealthBar.GetComponent<HealthBar> ().camera = game.cameraManager.CameraStrategy;
+		healthBar = newHealthBar.GetComponent<HealthBar> ();
+	}
+
+	public void UpdateHealthBar(){
+		if (healthBar)
+			healthBar.UpdateHealthBar (Health, MaxHealth);
 	}
 
 	public int getDefense(){

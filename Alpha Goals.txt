@@ -1,0 +1,20 @@
+TODO: CoA
+
+Title Screen, Splash Screen -> Game Mode
+
+Music - BGM Switching, SFX
+AI - choose and attack
+
+
+
+Terrain placement for ramps and stuff?
+MapBuilding
+
+Health Bars
+Values updating - OPness of certain stuff
+Update how combat works
+
+
+
+Opt:
+Fix simulacrum code

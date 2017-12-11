@@ -18,7 +18,7 @@ public class UIManager : MonoBehaviour {
 		game = GetComponent<GameManager> ();
 
 		canvas = transform.FindChild ("Canvas").gameObject;
-		canvas.transform.parent = transform.FindChild ("CameraStrategy").transform;
+		canvas.transform.SetParent(GameObject.Find("CameraStrategy").gameObject.transform);
 
 		textCurrentTurn = canvas.transform.FindChild ("textCurrentTurn").gameObject.GetComponent<Text> ();
 		textUnitStats = canvas.transform.FindChild ("textUnitStats").gameObject.GetComponent<Text> ();
@@ -30,23 +30,7 @@ public class UIManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown (KeyCode.Alpha1)) {
 
-
-		}
-		if (Input.GetKeyDown (KeyCode.Alpha2)) {
-			game.unitManager.DeleteAllUnits ();
-		}
-		if (Input.GetKeyDown (KeyCode.Alpha3)) {
-			game.unitManager.DeleteAllFactionUnits (UnitManager.Faction.Player);
-		}
-
-
-
-
-		if (Input.GetKeyDown (KeyCode.Space)) {
-			game.unitManager.RestoreMovement (UnitManager.Faction.Player);
-		}	
 	}
 
 	public void SpawnUnits(){
