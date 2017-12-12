@@ -175,7 +175,7 @@ public class UnitManager : MonoBehaviour {
 	}
 
 	public void DeleteAllUnits(){
-		game.clickManager.Deselect ();
+		game.click.Deselect ();
 		for (int i = 0; i < ArraySize; i++) {
 			if (unitObjArray [i] != null) {
 				deadUnits.Add(unitObjArray[i]);
@@ -196,7 +196,7 @@ public class UnitManager : MonoBehaviour {
 
 	public void checkEndTurn(){
 		bool endTurn = true;
-		Faction currFaction = game.turnManager.getCurrentTurn();
+		Faction currFaction = game.turn.getCurrentTurn();
 		for (int i = 0; i < ArraySize; i++) {
 			if (unitArray[i] != null){
 				if (unitArray [i].faction == currFaction && unitArray [i].getState () != Unit.State.Done) {
@@ -206,7 +206,7 @@ public class UnitManager : MonoBehaviour {
 			}
 		}
 		if (endTurn)
-			game.turnManager.switchTurn ();
+			game.turn.switchTurn ();
 	}
 
 }

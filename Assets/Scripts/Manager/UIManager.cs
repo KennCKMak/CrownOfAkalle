@@ -34,44 +34,44 @@ public class UIManager : MonoBehaviour {
 	}
 
 	public void SpawnUnits(){
-		game.unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 9, 3, UnitManager.Faction.Player);
-		game.unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 10, 3, UnitManager.Faction.Player);
-		game.unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 11, 3, UnitManager.Faction.Player);
-		game.unitManager.CreateUnit (UnitManager.UnitName.ArcherUnit, 10, 2, UnitManager.Faction.Player);
-		game.unitManager.CreateUnit (UnitManager.UnitName.KnightUnit, 12, 3, UnitManager.Faction.Player);
+		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 9, 3, UnitManager.Faction.Player);
+		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 10, 3, UnitManager.Faction.Player);
+		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 11, 3, UnitManager.Faction.Player);
+		game.unit.CreateUnit (UnitManager.UnitName.ArcherUnit, 10, 2, UnitManager.Faction.Player);
+		game.unit.CreateUnit (UnitManager.UnitName.KnightUnit, 12, 3, UnitManager.Faction.Player);
 
-		game.unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 10, 7, UnitManager.Faction.Enemy);
-		game.unitManager.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 11, 7, UnitManager.Faction.Enemy);
-		game.unitManager.CreateUnit (UnitManager.UnitName.ArcherUnit, 10, 8, UnitManager.Faction.Enemy);
-		game.unitManager.CreateUnit (UnitManager.UnitName.ArcherUnit, 11, 8, UnitManager.Faction.Enemy);
-		game.unitManager.CreateUnit (UnitManager.UnitName.SpearmanUnit, 12, 7, UnitManager.Faction.Enemy);
+		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 10, 7, UnitManager.Faction.Enemy);
+		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 11, 7, UnitManager.Faction.Enemy);
+		game.unit.CreateUnit (UnitManager.UnitName.ArcherUnit, 10, 8, UnitManager.Faction.Enemy);
+		game.unit.CreateUnit (UnitManager.UnitName.ArcherUnit, 11, 8, UnitManager.Faction.Enemy);
+		game.unit.CreateUnit (UnitManager.UnitName.SpearmanUnit, 12, 7, UnitManager.Faction.Enemy);
 	}
 
 	public void DestroyAllUnits(){
-		game.unitManager.DeleteAllUnits();
+		game.unit.DeleteAllUnits();
 	}
 
 	public void DestroyPlayerUnits(){
-		game.unitManager.DeleteAllFactionUnits (UnitManager.Faction.Player);
+		game.unit.DeleteAllFactionUnits (UnitManager.Faction.Player);
 	}
 
 	public void DestroyAllyUnits(){
-		game.unitManager.DeleteAllFactionUnits (UnitManager.Faction.Ally);
+		game.unit.DeleteAllFactionUnits (UnitManager.Faction.Ally);
 	}
 
 	public void DestroyEnemyUnits(){
-		game.unitManager.DeleteAllFactionUnits (UnitManager.Faction.Enemy);
+		game.unit.DeleteAllFactionUnits (UnitManager.Faction.Enemy);
 	}
 
 	public void EndTurn(){
-		game.turnManager.switchTurn ();
-		game.clickManager.Deselect ();
-		textCurrentTurn.GetComponent<Text> ().text = "Turn: " + game.turnManager.getCurrentTurn ().ToString ();
+		game.turn.switchTurn ();
+		game.click.Deselect ();
+		textCurrentTurn.GetComponent<Text> ().text = "Turn: " + game.turn.getCurrentTurn ().ToString ();
 	}
 
 	public void UpdateUnitStatsText(){
-		if (game.clickManager.selectedUnit != null) {
-			Unit unit = game.clickManager.selectedUnit.GetComponent<Unit> ();
+		if (game.click.selectedUnit != null) {
+			Unit unit = game.click.selectedUnit.GetComponent<Unit> ();
 		
 			string words;
 
@@ -98,9 +98,9 @@ public class UIManager : MonoBehaviour {
 
 	public void UpdateHoveredUnitStatsText(){
 		textHoveredUnitStats.text = "";
-		if (game.clickManager.hoveredUnit != null) {
-			if (game.clickManager.hoveredUnit != game.clickManager.selectedUnit) {
-				Unit unit = game.clickManager.hoveredUnit.GetComponent<Unit> ();
+		if (game.click.hoveredUnit != null) {
+			if (game.click.hoveredUnit != game.click.selectedUnit) {
+				Unit unit = game.click.hoveredUnit.GetComponent<Unit> ();
 
 				string words;
 
@@ -129,17 +129,17 @@ public class UIManager : MonoBehaviour {
 	public void updateText(){
 		UpdateUnitStatsText ();
 		UpdateHoveredUnitStatsText ();
-		textCurrentTurn.text = game.turnManager.getCurrentTurnString ();
+		textCurrentTurn.text = game.turn.getCurrentTurnString ();
 
 	}
 
 	public void setSimulation(){
-		if (game.combatManager.isSkippingSimulation ()) {
-			game.combatManager.setSkippingSimulation (false);
+		if (game.combat.isSkippingSimulation ()) {
+			game.combat.setSkippingSimulation (false);
 			canvas.transform.FindChild ("btnSimulate").transform.GetChild (0).GetComponent<Text> ().text = 
 				"Simulation On";
 		} else {
-			game.combatManager.setSkippingSimulation (true);
+			game.combat.setSkippingSimulation (true);
 			canvas.transform.FindChild ("btnSimulate").transform.GetChild (0).GetComponent<Text> ().text = 
 				"Simulation Off";
 		}

@@ -30,6 +30,8 @@ public class CombatManager : MonoBehaviour {
 	protected Unit attacker; //this is for animation purposes, the last swing at the end
 	protected Unit defender;
 
+	private Transform SimulationPlane;
+	private float planeX, planeY, planeZ;
 	// Use this for initialization
 	void Start () {
 		game = GetComponent<GameManager> ();
@@ -37,6 +39,11 @@ public class CombatManager : MonoBehaviour {
 		DefendingUnits = new List<GameObject> ();
 		simulationRunning = false;
 		skipSimulation = false;
+
+		SimulationPlane = GameObject.Find ("SimulationPlane").transform;
+		planeX = SimulationPlane.position.x;
+		planeY = SimulationPlane.position.y;
+		planeZ = SimulationPlane.position.z;
 	}
 
 
@@ -54,8 +61,8 @@ public class CombatManager : MonoBehaviour {
 		attacker = initiator;
 		defender = target;
 
-		game.clickManager.canClick = false;
-		game.cameraManager.setCameraState (CameraManager.CameraState.Simulation);
+		game.click.canClick = false;
+		game.camManager.setCameraState (CameraManager.CameraState.Simulation);
 
 		if (dist == 1) {
 			ResolveCombatMelee (initiator, target);
@@ -193,21 +200,21 @@ public class CombatManager : MonoBehaviour {
 
 		case "Melee": 
 			if (attacker.faction == UnitManager.Faction.Player) {
-				AttackerPos = new Vector3 (500.0f, 0.245f, -8);
-				DefenderPos = new Vector3 (500.0f, 0.245f, 8);
+				AttackerPos = new Vector3 (planeX, planeY - 0.405f, planeZ - 8);
+				DefenderPos = new Vector3 (planeX, planeY - 0.405f, planeZ + 8);
 			} else {
-				AttackerPos = new Vector3 (500.0f, 0.245f, 8);
-				DefenderPos = new Vector3 (500.0f, 0.245f, -8);
+				AttackerPos = new Vector3 (planeX, planeY - 0.405f, planeZ + 8);
+				DefenderPos = new Vector3 (planeX, planeY - 0.405f, planeZ - 8);
 			}
 			SpawnUnitsAt (AttackerPos, attacker.faction, DefenderPos, defender.faction);
 			break;
 		case "Ranged":
 			if (attacker.faction == UnitManager.Faction.Player) {
-				AttackerPos = new Vector3 (500.0f, 0.245f, -8);
-				DefenderPos = new Vector3 (500.0f, 0.245f, 8);
+				AttackerPos = new Vector3 (planeX, planeY - 0.405f, planeZ - 8);
+				DefenderPos = new Vector3 (planeX, planeY - 0.405f, planeZ + 8);
 			} else { 
-				AttackerPos = new Vector3 (500.0f, 0.245f, 8);
-				DefenderPos = new Vector3 (500.0f, 0.245f, -8);
+				AttackerPos = new Vector3 (planeX, planeY - 0.405f, planeZ + 8);
+				DefenderPos = new Vector3 (planeX, planeY - 0.405f, planeZ - 8);
 			}
 			SpawnUnitsAt (AttackerPos, attacker.faction, DefenderPos, defender.faction);
 			break;
@@ -217,10 +224,10 @@ public class CombatManager : MonoBehaviour {
 
 
 		if (attacker.faction == UnitManager.Faction.Player || attacker.faction == UnitManager.Faction.Ally)
-			game.cameraManager.CameraSimulation.transform.position = new Vector3(500, 5, AttackerPos.z-4);
+			game.camManager.CameraSimulation.transform.position = new Vector3(planeX, planeY + 5, AttackerPos.z- 4);
 		else
-			game.cameraManager.CameraSimulation.transform.position = new Vector3(500, 5, DefenderPos.z-4);
-		game.cameraManager.CameraSimulation.transform.rotation = Quaternion.identity;
+			game.camManager.CameraSimulation.transform.position = new Vector3(planeX, planeY + 5, DefenderPos.z-4);
+		game.camManager.CameraSimulation.transform.rotation = Quaternion.identity;
 			
 
 		StartSimulation ();
@@ -229,7 +236,7 @@ public class CombatManager : MonoBehaviour {
 	void StartSimulation(){
 		elapsedTime = 0.0f;
 		simState = SimulationState.Intro;
-
+		game.audioManager.SwitchBGMTo (AudioManager.bgmSongVersion.Rage);
 		simulationRunning = true;
 	}
 
@@ -280,16 +287,17 @@ public class CombatManager : MonoBehaviour {
 		foreach (GameObject unit in DefendingUnits) 
 			unit.GetComponent<UnitSim> ().StopSim ();
 		simulationRunning = false;
-		game.unitManager.ScanForDeadUnits ();
-		game.clickManager.canClick = true;
-		game.cameraManager.setCameraState (CameraManager.CameraState.Strategy);
+		game.unit.ScanForDeadUnits ();
+		game.click.canClick = true;
+		game.camManager.setCameraState (CameraManager.CameraState.Strategy);
 
 		attacker.getAnimator ().SetTrigger ("Attack");
 		attacker.GetComponent<Unit> ().setState (Unit.State.Done);
 		defender.getAnimator ().SetTrigger ("TakeDamage");
-		game.unitManager.checkEndTurn ();
+		game.unit.checkEndTurn ();
 
 
+		game.audioManager.SwitchBGMTo (AudioManager.bgmSongVersion.Stream);
 
 		ResetSimulation ();
 

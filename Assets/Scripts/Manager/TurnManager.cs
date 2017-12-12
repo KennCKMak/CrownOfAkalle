@@ -21,11 +21,11 @@ public class TurnManager : MonoBehaviour {
 		switch (currentTurn){
 		case UnitManager.Faction.Player:
 			setTurn (UnitManager.Faction.Enemy);
-			game.unitManager.RestoreMovement (UnitManager.Faction.Enemy);
+			game.unit.RestoreMovement (UnitManager.Faction.Enemy);
 			break;
 		case UnitManager.Faction.Enemy:
 			setTurn (UnitManager.Faction.Player);
-			game.unitManager.RestoreMovement (UnitManager.Faction.Player);
+			game.unit.RestoreMovement (UnitManager.Faction.Player);
 			break;
 		default:
 			break;
@@ -33,7 +33,7 @@ public class TurnManager : MonoBehaviour {
 			
 
 
-		game.uiManager.updateText ();
+		game.ui.updateText ();
 	}
 
 	public void setTurn(UnitManager.Faction newTurn){

@@ -231,8 +231,8 @@ public class ClickManager : MonoBehaviour {
 		selectedUnit = unit;
 		hoveredUnit = null;
 		StartHologram ();
-		game.uiManager.UpdateUnitStatsText();
-		game.uiManager.UpdateHoveredUnitStatsText ();
+		game.ui.UpdateUnitStatsText();
+		game.ui.UpdateHoveredUnitStatsText ();
 	}
 
 	public void SelectTile(Tile tile){
@@ -262,14 +262,14 @@ public class ClickManager : MonoBehaviour {
 			mapManager.cleanMap ();
 			mapManager.cleanValidMovesTilesList ();
 
-			game.uiManager.updateText ();
+			game.ui.updateText ();
 
 		}
 	}
 
 	public void setHoveredUnit(GameObject unit){
 		hoveredUnit = unit;
-		game.uiManager.UpdateHoveredUnitStatsText ();
+		game.ui.UpdateHoveredUnitStatsText ();
 	}
 
 	public void DeselectTile(){

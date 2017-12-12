@@ -3,51 +3,56 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour {
-	
-	public MapManager mapManager;
-	public UnitManager unitManager;
-	public CombatManager combatManager;
-	public ClickManager clickManager;
-	public CameraManager cameraManager;
-	public TurnManager turnManager;
-	public UIManager uiManager;
+
+	[HideInInspector]
+	public MapManager map;
+	[HideInInspector]
+	public UnitManager unit;
+	[HideInInspector]
+	public CombatManager combat;
+	[HideInInspector]
+	public ClickManager click;
+	[HideInInspector]
+	public CameraManager camManager;
+	[HideInInspector]
+	public TurnManager turn;
+	[HideInInspector]
+	public UIManager ui;
+
+	[HideInInspector]
+	public AudioManager audioManager;
 
 
 	// Use this for initialization
-	void Start () {
-		mapManager = GetComponent<MapManager> ();
-		unitManager = GetComponent<UnitManager> ();
-		combatManager = GetComponent<CombatManager> ();
-		clickManager = GetComponent<ClickManager> ();
-		cameraManager = GetComponent<CameraManager> ();
-		turnManager = GetComponent<TurnManager> ();
-		uiManager = GetComponent<UIManager> ();
+	void Awake () {
+		map = GetComponent<MapManager> ();
+		unit = GetComponent<UnitManager> ();
+		combat = GetComponent<CombatManager> ();
+		click = GetComponent<ClickManager> ();
+		camManager = GetComponent<CameraManager> ();
+		turn = GetComponent<TurnManager> ();
+		ui = GetComponent<UIManager> ();
+
+		audioManager = FindObjectOfType<AudioManager> ();
 	}
 
-
-
-	// Update is called once per frame
-	void Awake(){
-
-
-	}
 
 
 	void Update () {
 		if (Input.GetMouseButtonDown (1))
-			clickManager.Deselect ();
+			click.Deselect ();
 
 		if (Input.GetKeyDown (KeyCode.Alpha2)) 
-			unitManager.DeleteAllUnits ();
+			unit.DeleteAllUnits ();
 		
 		if (Input.GetKeyDown (KeyCode.Alpha3)) 
-			unitManager.DeleteAllFactionUnits (UnitManager.Faction.Player);
+			unit.DeleteAllFactionUnits (UnitManager.Faction.Player);
 
 		if (Input.GetKeyDown (KeyCode.Alpha4)) 
-			unitManager.DeleteAllFactionUnits (UnitManager.Faction.Enemy);
+			unit.DeleteAllFactionUnits (UnitManager.Faction.Enemy);
 
 		if (Input.GetKeyDown (KeyCode.Space)) 
-			unitManager.RestoreMovement (UnitManager.Faction.Player);
+			unit.RestoreMovement (UnitManager.Faction.Player);
 		
 
 	}
