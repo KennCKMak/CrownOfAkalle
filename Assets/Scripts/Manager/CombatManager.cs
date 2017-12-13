@@ -126,6 +126,7 @@ public class CombatManager : MonoBehaviour {
 			newUnit.GetComponent<UnitSim> ().setHealth(attacker.getHealthPerUnit ());
 			newUnit.GetComponent<UnitSim> ().setUnitSide (UnitSim.UnitSide.Attacker);
 			newUnit.GetComponent<UnitSim> ().combatManager = this;
+			newUnit.GetComponent<UnitSim> ().game = game;
 			newUnit.GetComponent<UnitSim> ().setCombatType (combatType);
 			newUnit.GetComponent<UnitSim> ().factionColour = attacker.factionColour;
 
@@ -148,6 +149,8 @@ public class CombatManager : MonoBehaviour {
 
 			//newUnit.transform.GetChild (0).gameObject.GetComponent<Renderer>().material.shader = attacker.getShaderOutline();
 			newUnit.GetComponent<UnitSim>().animator = newUnit.GetComponent<Animator>();
+			newUnit.GetComponent<UnitSim> ().otherAllies = initialAttackerTroopCount;
+
 			AttackingUnits.Add (newUnit);
 		}
 
@@ -156,6 +159,7 @@ public class CombatManager : MonoBehaviour {
 			newUnit.GetComponent<UnitSim> ().setHealth(defender.getHealthPerUnit ());
 			newUnit.GetComponent<UnitSim> ().setUnitSide (UnitSim.UnitSide.Defender);
 			newUnit.GetComponent<UnitSim> ().combatManager = this;
+			newUnit.GetComponent<UnitSim> ().game = game;
 			newUnit.GetComponent<UnitSim> ().setCombatType (combatType);
 			newUnit.GetComponent<UnitSim> ().factionColour = defender.factionColour;
 
@@ -183,6 +187,8 @@ public class CombatManager : MonoBehaviour {
 
 			//newUnit.transform.GetChild (0).gameObject.GetComponent<Renderer> ().material.shader = defender.getShaderOutline();
 			newUnit.GetComponent<UnitSim>().animator = newUnit.GetComponent<Animator>();
+			newUnit.GetComponent<UnitSim> ().otherAllies = initialDefenderTroopCount;
+
 			DefendingUnits.Add (newUnit);
 		}
 
@@ -244,11 +250,11 @@ public class CombatManager : MonoBehaviour {
 		if (elapsedTime > introSimulationTime && simState == SimulationState.Intro) {
 			//Debug.Log ("Started");
 			foreach (GameObject unit in AttackingUnits) {
-				unit.GetComponent<UnitSim> ().StartSim ();
+				unit.GetComponent<UnitSim> ().StartSimDelayed ();
 			}
 
 			foreach (GameObject unit in DefendingUnits) {
-				unit.GetComponent<UnitSim> ().StartSim ();
+				unit.GetComponent<UnitSim> ().StartSimDelayed ();
 			}
 
 			simState = SimulationState.Playing;
@@ -463,5 +469,10 @@ public class CombatManager : MonoBehaviour {
 
 	public bool isSkippingSimulation(){
 		return skipSimulation;
+	}
+
+	public float randTimer(){
+		float rand = Random.value;
+		return rand;
 	}
 }

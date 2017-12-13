@@ -6,6 +6,8 @@ public class UnitSim : MonoBehaviour {
 
 	[SerializeField]public CombatManager combatManager;
 	[HideInInspector]public Animator animator;
+	[HideInInspector] public GameManager game;
+	private UnitSFX unitSFX;
 
 	public enum UnitSide
 	{
@@ -15,6 +17,7 @@ public class UnitSim : MonoBehaviour {
 
 	}
 	[SerializeField]protected UnitSide mySide = UnitSide.None;
+	private float randTimeStart = 0.15f; //maximum amount of time before force move
 
 	[SerializeField]protected float health;
 	[SerializeField]protected int damage;
@@ -49,10 +52,16 @@ public class UnitSim : MonoBehaviour {
 	protected float animationRange = 0.0f;
 	protected string combatType;
 
+	//Used to control audio
+	public int otherAllies = 1;
 
+	void Awake(){
+
+	}
 	// Use this for initialization
 	void Start () {
 
+		SetUpUnitSFX ();
 		foreach (GameObject part in Parts) {
 			part.GetComponent<Renderer> ().material = factionColour;
 		}
@@ -78,6 +87,10 @@ public class UnitSim : MonoBehaviour {
 		FindTarget ();
 		elapsedTime = attackSpeed;
 		animator.SetBool ("isIdle", false);
+	}
+
+	public void StartSimDelayed(){
+		Invoke ("StartSim", Random.value * randTimeStart);
 	}
 
 	public void StopSim(){
@@ -122,6 +135,9 @@ public class UnitSim : MonoBehaviour {
 			}
 		}
 		if (target == null) {
+			animator.SetBool ("isIdle", true);
+			animator.SetBool ("isAttacking", false);
+			animator.SetBool ("isMoving", false);
 			//Debug.Log ("All enemies dead.");
 			StopSim ();
 		}
@@ -154,10 +170,13 @@ public class UnitSim : MonoBehaviour {
 	}
 
 	public void Action(){
+
+		//setting attack dist
 		if (combatType == "Melee")
 			animationRange = range/2;
 		else
 			animationRange = range*2.5f;
+		
 		if(target){
 			if (Vector3.Distance (target.transform.position, transform.position) < animationRange) {
 				animator.SetBool ("isMoving", false);
@@ -172,17 +191,23 @@ public class UnitSim : MonoBehaviour {
 
 
 	public void Move() {
+
+		//setting move distance before run. Higher range means less travel to go
 		if (combatType == "Melee")
-			animationRange = range + 8;
+			animationRange = range + 10;
 		else
 			animationRange = range * 2.5f;
+
+
 		if(Vector3.Distance(transform.position, target.transform.position) > animationRange) {
 			transform.position = Vector3.MoveTowards (transform.position, target.transform.position, speed/4 * Time.deltaTime);
 			animator.SetBool ("isAttacking", false);
 		} else {
+			//running
 			transform.position = Vector3.MoveTowards (transform.position, target.transform.position, speed/2 * Time.deltaTime);
 			animator.SetBool ("isAttacking", true);
 		}
+		if(target != null)
 			transform.LookAt (target.transform.position);
 	}
 
@@ -258,4 +283,13 @@ public class UnitSim : MonoBehaviour {
 		return RangedWeapon;
 	}
 		
+	//___soundeffects_//
+
+
+	public void SetUpUnitSFX(){
+		if (!gameObject.GetComponent<UnitSFX> ())
+			gameObject.AddComponent<UnitSFX> ();
+		gameObject.GetComponent<UnitSFX> ().audioManager = game.audioManager;
+		gameObject.GetComponent<UnitSFX> ().GetUnitSimInformation (this, otherAllies);
+	}
 }

@@ -22,7 +22,7 @@ public class Unit : MonoBehaviour {
 	[SerializeField] protected int unitID;
 	[HideInInspector] protected GameObject simPrefab;
 	[HideInInspector] protected Animator animator;
-
+	private UnitSFX unitSFX;
 
 	public bool selected;
 	public List<GameObject> Parts; //parts that may need to be changed
@@ -86,7 +86,6 @@ public class Unit : MonoBehaviour {
 		}
 
 		transform.position = new Vector3 (tileX, 0.57f, tileY);
-
 	}
 
 
@@ -129,6 +128,8 @@ public class Unit : MonoBehaviour {
 			part.GetComponent<Renderer> ().material = factionColour;
 		}
 		CreateHealthBar ();
+
+		SetUpUnitSFX ();
 
 		setOutline (false);
 
@@ -590,5 +591,12 @@ public class Unit : MonoBehaviour {
 	public Animator getAnimator(){
 
 		return this.animator;
+	}
+
+	public void SetUpUnitSFX(){
+		if (!gameObject.GetComponent<UnitSFX> ())
+			gameObject.AddComponent<UnitSFX> ();
+		gameObject.GetComponent<UnitSFX> ().audioManager = game.audioManager;
+		gameObject.GetComponent<UnitSFX> ().GetUnitInformation (this);
 	}
 }

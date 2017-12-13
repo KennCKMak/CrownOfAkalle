@@ -4,6 +4,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Audio;	
 
+//AudioManager - Screen, UI, BGM stuff
 public class AudioManager : MonoBehaviour {
 
 	public BGM[] bgm;
@@ -59,7 +60,7 @@ public class AudioManager : MonoBehaviour {
 	public void PlaySFX(string soundName){
 		Sound s = Array.Find (sfx, sound => sound.name == soundName);
 		if (s == null)
-			Debug.LogError ("Sound: " + s.name + " was not found");
+			Debug.LogWarning ("Sound: " + soundName + " was not found");
 		else
 			s.source.Play ();
 	}
@@ -69,7 +70,7 @@ public class AudioManager : MonoBehaviour {
 		BGM music = Array.Find (bgm, bgm => bgm.name == bgmName);
 
 		if (music == null)
-			Debug.LogError ("BGM: " + music.name + " was not found");
+			Debug.LogWarning ("BGM: " + bgmName + " was not found");
 		else {
 			currentBGM = music;
 			if (songType == bgmSongVersion.Stream) {
@@ -149,5 +150,14 @@ public class AudioManager : MonoBehaviour {
 
 	public void StopBGM(){
 		bgmSource.Stop ();
+	}
+
+	public Sound RequestSFX(string soundClip) {
+		Sound s = Array.Find (sfx, sound => sound.name == soundClip);
+		if (s == null) {
+			Debug.LogWarning ("Sound: " + soundClip + " was not found");
+		} else
+			return s;
+		return null;
 	}
 }
