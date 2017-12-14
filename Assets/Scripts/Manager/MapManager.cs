@@ -39,7 +39,7 @@ public class MapManager : MonoBehaviour {
     [SerializeField] protected GameObject tileWaterPrefab;
     [SerializeField] protected GameObject tileBridgePrefab;
 
-    protected float heightVariance = 0.02f;
+    protected float heightVariance = 0.00f;
 
 	protected Shader shaderStandard;
 	protected Shader shaderOutline;

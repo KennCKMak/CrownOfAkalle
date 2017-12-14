@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System;
 using UnityEngine;
-using UnityEngine.Audio;	
+using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 
 //AudioManager - Screen, UI, BGM stuff
 public class AudioManager : MonoBehaviour {
@@ -20,12 +21,12 @@ public class AudioManager : MonoBehaviour {
 
 	};
 
-	private AudioSource bgmSource = null;
-	private bgmSongVersion bgmCurrentVersion = bgmSongVersion.Stream; //stream, rage
-	private BGM currentBGM = null;
+	public AudioSource bgmSource = null;
+	public bgmSongVersion bgmCurrentVersion = bgmSongVersion.Stream; //stream, rage
+	public BGM currentBGM = null;
 
 	void Awake () {
-		if (instance == null)
+	    if (instance == null)
 			instance = this;
 		else{
 			Destroy (gameObject);
@@ -45,18 +46,41 @@ public class AudioManager : MonoBehaviour {
 
 	}
 
+    private void Start()
+    {
+        CheckScene(SceneManager.GetActiveScene());
+    }
 
-	void Start () {
-		PlayBGM ("E Pluribus Unum", bgmSongVersion.Stream);
-	}
+    
 
 	void Update() {
+        SceneManager.sceneLoaded += OnSceneLoaded;
 	}
+    
+    public void CheckScene(Scene scene)
+    {
+        switch (scene.name)
+        {
+            case "Test"://test
+                PlayBGM("E Pluribus Unum", bgmSongVersion.Stream);
+                FindObjectOfType<GameManager>().audioManager = this;
+                return;
+            case "MainMenu"://main menu
+                PlayBGM("Camelot", bgmSongVersion.Stream);
+                return;
+            default:
+                break;
+        }
+    }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name != SceneManager.GetActiveScene().name)
+            StopBGM();
+        CheckScene(scene);
+    }
 
-
-
-	public void PlaySFX(string soundName){
+    public void PlaySFX(string soundName){
         if (mute)
             return;
 		Sound s = Array.Find (sfx, sound => sound.name == soundName);
@@ -129,8 +153,13 @@ public class AudioManager : MonoBehaviour {
             return;
         if (bgmCurrentVersion == newSongVersion)
 			return;
+        float currentTime = 0;
+        if (bgmSource == null)
+        {
+        }
 
-		float currentTime = bgmSource.time;
+
+        currentTime = bgmSource.time;
 		float currentLength = bgmSource.clip.length;
 
 		if (newSongVersion == bgmSongVersion.Rage) {

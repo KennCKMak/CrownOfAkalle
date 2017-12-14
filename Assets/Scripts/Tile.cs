@@ -31,6 +31,7 @@ public class Tile : MonoBehaviour {
 
     void Awake()
     {
+        outlineObjects = GetComponentsInChildren<Outline>();
     }
 
 	void Start(){
@@ -170,10 +171,14 @@ public class Tile : MonoBehaviour {
 
 	public void setOutline(bool b)
     {
-        if (b)
-			transform.GetChild(0).gameObject.GetComponent<Renderer>().material.shader = shaderOutline;
-		else
-			transform.GetChild(0).gameObject.GetComponent<Renderer>().material.shader = shaderNormal;
+        foreach (Outline outline in outlineObjects)
+        {
+            outline.enabled = b;
+        }
+        //if (b)
+          //  transform.GetChild(0).gameObject.GetComponent<Outline>().enabled = b; //>().material.shader = shaderOutline;
+		//else
+			//transform.GetChild(0).gameObject.GetComponent<Renderer>().material.shader = shaderNormal;
     }
 
 

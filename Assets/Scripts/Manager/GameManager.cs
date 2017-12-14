@@ -14,8 +14,10 @@ public class GameManager : MonoBehaviour {
     [HideInInspector] public AIManager AI;
     public List<Unit> tempUnitsList = new List<Unit>();
 
-	[HideInInspector]
-	public AudioManager audioManager;
+
+	[HideInInspector] public AudioManager audioManager;
+
+    public bool paused;
 
 
 	// Use this for initialization
@@ -28,12 +30,19 @@ public class GameManager : MonoBehaviour {
 		turn = GetComponent<TurnManager> ();
 		ui = GetComponent<UIManager> ();
         AI = GetComponent<AIManager>();
-		audioManager = FindObjectOfType<AudioManager> ();
+		
 	}
 
     void Start()
     {
         Time.timeScale = 1.0f;
+
+        Invoke("SpawnUnits", 0.5f);
+    }
+
+    void SpawnUnits()
+    {
+        ui.SpawnUnits();
     }
 
     void Update() {
@@ -56,6 +65,30 @@ public class GameManager : MonoBehaviour {
 
         if (Input.GetKeyDown(KeyCode.M))
             audioManager.SwitchBGM();
+    }
+
+    public void Pause()
+    {
+        if (paused)
+        {
+            StopPause();
+
+        }
+        else
+            StartPause();
+        paused = !paused;
+
 
     }
+   
+    public void StartPause()
+    {
+        Time.timeScale = 0.0f;
+    }
+
+    public void StopPause()
+    {
+        Time.timeScale = 1.0f;
+    }
+
 }

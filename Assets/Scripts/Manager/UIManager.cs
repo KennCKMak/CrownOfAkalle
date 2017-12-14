@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour {
 
@@ -10,6 +11,10 @@ public class UIManager : MonoBehaviour {
 
     public GameObject panelLeft;
     public GameObject panelRight;
+    public GameObject pausePanel;
+
+    public GameObject pauseButton;
+
 	public Text textCurrentTurn;
 	public Text textUnitStats;
 	public Text textHoveredUnitStats;
@@ -23,13 +28,16 @@ public class UIManager : MonoBehaviour {
 
         panelLeft = canvas.transform.FindChild("PanelLeft").gameObject;
         panelRight = canvas.transform.FindChild("PanelRight").gameObject;
+        pausePanel = canvas.transform.FindChild("PauseMenu").gameObject;
+        pauseButton = canvas.transform.FindChild("btnPause").gameObject;
 		textCurrentTurn = canvas.transform.FindChild ("textCurrentTurn").gameObject.GetComponent<Text> ();
 		textUnitStats = panelLeft.transform.FindChild ("textUnitStats").gameObject.GetComponent<Text> ();
 		textHoveredUnitStats = panelRight.transform.FindChild ("textHoveredUnitStats").gameObject.GetComponent<Text> ();
 		updateText ();
+
 	}
 
-
+   
 	
 	// Update is called once per frame
 	void Update () {
@@ -163,4 +171,22 @@ public class UIManager : MonoBehaviour {
 				"Simulation Off";
 		}
 	}
+
+    public void PauseButton()
+    {
+        game.Pause();
+        pausePanel.SetActive(game.paused);
+        pauseButton.SetActive(!game.paused);
+    }
+
+    public void SwitchLevel(string s)
+    {
+        try
+        {
+            SceneManager.LoadScene(s, LoadSceneMode.Single);
+        }catch
+        {
+            Debug.LogWarning("Failed to load scene " + s);
+        }
+    }
 }
