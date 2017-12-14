@@ -17,7 +17,7 @@ public class UnitSim : MonoBehaviour {
 
 	}
 	[SerializeField]protected UnitSide mySide = UnitSide.None;
-	private float randTimeStart = 0.15f; //maximum amount of time before force move
+	private float randTimeStart = 0.02f; //maximum amount of time before force move
 
 	[SerializeField]protected float health;
 	[SerializeField]protected int damage;
@@ -103,21 +103,25 @@ public class UnitSim : MonoBehaviour {
 
 	public void CheckHP(){
 		if (health <= 0) {
-			Died ();
+            Died();
 		}
 	}
 
-	public void Died(){
-		isDead = true;
-		GetComponent<CapsuleCollider> ().enabled = false;
-		GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-		if (!invuln) {
-			animator.SetBool ("isDead", true);
-			animator.SetInteger ("AnimVariance", Random.Range(1, 2+1));
-		}
-		hasAction = false;
-		combatManager.addDeath (mySide);
-	}
+	public void Died()
+    {
+        if (combatManager.RequestDeathPermission(mySide))
+        {
+            GetComponent<CapsuleCollider>().enabled = false;
+            GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+
+            isDead = true;
+            animator.SetBool("isDead", true);
+            animator.SetInteger("AnimVariance", Random.Range(1, 2 + 1));
+
+            hasAction = false;
+        }
+        combatManager.addDeath(mySide);
+    }
 
 	public void takeDamage(int damage){
 		if (!invuln) {

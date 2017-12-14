@@ -39,10 +39,15 @@ public class GameManager : MonoBehaviour {
 
 
 	void Update () {
-		if (Input.GetMouseButtonDown (1))
-			click.Deselect ();
 
-		if (Input.GetKeyDown (KeyCode.Alpha2)) 
+        if (Input.GetMouseButtonDown(1))
+            click.DeselectUnit();
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+            click.DeselectUnit();
+
+
+        if (Input.GetKeyDown (KeyCode.Alpha2)) 
 			unit.DeleteAllUnits ();
 		
 		if (Input.GetKeyDown (KeyCode.Alpha3)) 
@@ -53,7 +58,9 @@ public class GameManager : MonoBehaviour {
 
 		if (Input.GetKeyDown (KeyCode.Space)) 
 			unit.RestoreMovement (UnitManager.Faction.Player);
-		
 
-	}
+        if (Input.GetKeyDown(KeyCode.M))
+            audioManager.SwitchBGM();
+
+    }
 }

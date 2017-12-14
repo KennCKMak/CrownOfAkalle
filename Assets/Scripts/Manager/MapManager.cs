@@ -33,11 +33,16 @@ public class MapManager : MonoBehaviour {
 	[SerializeField] int mapSizeY = 20;
 	[SerializeField] protected GameObject tileEmpty;
 	[SerializeField] protected GameObject tileGrasslandPrefab;
-	[SerializeField] protected GameObject tileForestPrefab;
+    [SerializeField] protected GameObject tileForestPrefab;
+    [SerializeField] protected GameObject tileStonePrefab;
 	[SerializeField] protected GameObject tileMountainPrefab;
+    [SerializeField] protected GameObject tileWaterPrefab;
+    [SerializeField] protected GameObject tileBridgePrefab;
 
-	[SerializeField] protected Shader shaderStandard;
-	[SerializeField] protected Shader shaderOutline;
+    protected float heightVariance = 0.02f;
+
+	protected Shader shaderStandard;
+	protected Shader shaderOutline;
 
 	void Start(){
 		clickManager = GetComponent<ClickManager> ();
@@ -66,9 +71,12 @@ public class MapManager : MonoBehaviour {
 			for (y = 0; y < mapSizeY; y++) {
 				tileGameObjectArray [x, y] = Instantiate (tileEmpty, Vector3.zero, Quaternion.identity);
 				tileArray [x, y] = tileGameObjectArray [x, y].GetComponent<Tile> ();
+                
 			}
 		}
 
+
+        //making map
 		for (x = 0; x < mapSizeX; x++) {
 			for (y = 0; y < mapSizeY; y++) {
 				tileArray[x,y].tileType = Tile.TileType.Grassland;
@@ -76,9 +84,20 @@ public class MapManager : MonoBehaviour {
 			}
 		}
 
+        //making water
+        for (y = 0; y < mapSizeY; y++)
+        {
+            tileArray[8, y].setTileType(Tile.TileType.Water);
+            tileArray[8, y].setTileVisualPrefab(tileWaterPrefab);
+        }
+        //bridge
+        tileArray[8, 10].setTileType(Tile.TileType.Bridge);
+        tileArray[8, 10].setTileVisualPrefab(tileBridgePrefab);
+        tileArray[8, 4].setTileType(Tile.TileType.Bridge);
+        tileArray[8, 4].setTileVisualPrefab(tileBridgePrefab);
 
-		//Make a big forest area
-		for (x = 3; x <= 5; x++) {
+        //Make a big forest area
+        for (x = 3; x <= 5; x++) {
 			for(y=0; y< 4; y++) {
 				tileArray[x,y].setTileType(Tile.TileType.Forest);
 				tileArray[x,y].setTileVisualPrefab(tileForestPrefab);
@@ -128,14 +147,17 @@ public class MapManager : MonoBehaviour {
 	void GenerateMapVisuals() {
 		for (int x = 0; x < mapSizeX; x++) {
 			for (int y = 0; y < mapSizeX; y++) {
-				GameObject newTile = Instantiate (tileArray[x,y].GetComponent<Tile>().getTileVisualPrefab(), new Vector3 (x, 0.5f, y), Quaternion.identity) as GameObject;
+				GameObject newTile = Instantiate (tileArray[x,y].GetComponent<Tile>().getTileVisualPrefab(), 
+                    new Vector3 (0.5f, 0.5f, 0.5f), Quaternion.identity) as GameObject;
+
 				newTile.GetComponent<Tile>().setTileX(x);
 				newTile.GetComponent<Tile>().setTileY(y);
 				newTile.GetComponent<Tile>().map = this;
+                newTile.GetComponent<Tile>().heightVariance = Random.value * (int)Random.Range(-1, 1) * heightVariance;
+                newTile.transform.position = new Vector3(x, 0.5f + newTile.GetComponent<Tile>().heightVariance, y);
 
 
 				newTile.GetComponent<Tile>().setTileType(tileArray[x,y].getTileType());
-
 				newTile.GetComponent<Tile>().setTileVisualPrefab(tileArray[x,y].getTileVisualPrefab());
 
 
@@ -164,7 +186,7 @@ public class MapManager : MonoBehaviour {
 	public Vector3 TileCoordToWorldCoord(int x, int y){
 
 //		TileType tt = tileTypes [tiles [x, y]];
-		float ypos = 0.57f;//tt.playerYPosition;
+		float ypos = tileArray[x,y].heightVariance + 0.57f;//tt.playerYPosition;
 		return new Vector3 (x, ypos, y);
 	}
 

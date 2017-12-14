@@ -79,12 +79,15 @@ public class Unit : MonoBehaviour {
 	[SerializeField]protected int RangedExpertise;
 	[SerializeField]protected int RangedAttack;
 
+    private Outline[] outlineComponents;
+    private OutlineEffect.OutlineColor outlineColor;
+
+
 	void Start(){
 		if (!(unitID >= 0)){
 			Debug.Log ("Failed ID");
 			Destroy (gameObject);
 		}
-
 		transform.position = new Vector3 (tileX, 0.57f, tileY);
 	}
 
@@ -107,7 +110,7 @@ public class Unit : MonoBehaviour {
 
 
 
-	public void SetupUnit(){
+	public void SetUpUnit(){
 
 		animator = this.gameObject.GetComponent<Animator> ();
 		checkDefense (); //setting armoured tag
@@ -125,13 +128,17 @@ public class Unit : MonoBehaviour {
 		HealthPerUnit = MaxHealth / MaxUnitSize;
 
 		foreach (GameObject part in Parts) {
-			part.GetComponent<Renderer> ().material = factionColour;
+            if(part.name != "WK_Horse_A")
+			    part.GetComponent<Renderer> ().material = factionColour;
 		}
 		CreateHealthBar ();
 
 		SetUpUnitSFX ();
 
-		setOutline (false);
+        SetUpUnitOutline();
+
+
+        setOutline (false);
 
 		NewTurn ();
 	}
@@ -196,16 +203,40 @@ public class Unit : MonoBehaviour {
 		return unitID;
 	}
 
-	public void setOutline(bool b){
+    public void SetUpUnitOutline()
+    {
+        //Add Outline Components
+        foreach(GameObject part in Parts)
+        {
+            part.AddComponent<Outline>();
+            part.GetComponent<Outline>().color = outlineColor;
+        }
+        outlineComponents = GetComponentsInChildren<Outline>();
+        foreach (Outline outline in outlineComponents)
+        {
+            outline.enabled = false;
+        }
+    }
+
+    public void SetOutlineColor(OutlineEffect.OutlineColor newColor)
+    {
+        Debug.Log("called w/ " + newColor.ToString());
+        this.outlineColor = newColor;
+    }
+
+    public void setOutline(bool b){
 		if (b) {
-			/*foreach (GameObject part in Parts) {
-				part.GetComponent<Renderer> ().material.shader = shaderOutline;
-			}*/
-		} else {
-			foreach (GameObject part in Parts) {
-				part.GetComponent<Renderer> ().material.shader = shaderNormal;
-			}
-		}
+            foreach (Outline outline in outlineComponents)
+            {
+                outline.enabled = true;
+            }
+        } else
+        {
+            foreach (Outline outline in outlineComponents)
+            {
+                outline.enabled = false;
+            }
+        }
 	}
 
 	public Shader getShaderOutline(){
@@ -599,4 +630,29 @@ public class Unit : MonoBehaviour {
 		gameObject.GetComponent<UnitSFX> ().audioManager = game.audioManager;
 		gameObject.GetComponent<UnitSFX> ().GetUnitInformation (this);
 	}
+
+
+
+    //Control directions
+    public void RotateUnitFace(string direction)
+    {
+        switch (direction)
+        {
+            case "East":
+                transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+                break;
+            case "West":
+                transform.rotation = Quaternion.Euler(new Vector3(0, -90, 0));
+                break;
+            case "South":
+                transform.rotation = Quaternion.Euler(new Vector3(0, -180, 0));
+                break;
+
+            case "North":
+            default:
+                break;
+        }
+    }
+
+
 }

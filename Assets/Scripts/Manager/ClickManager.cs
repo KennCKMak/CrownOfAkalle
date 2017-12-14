@@ -31,7 +31,8 @@ public class ClickManager : MonoBehaviour {
 	[HideInInspector] public UnitManager unitManager;
 	[HideInInspector] public TurnManager turnManager;
 
-	private bool isHologram = false;
+    [SerializeField]
+    private bool isHologram = false;
 
 	// Use this for initialization
 	void Start () {
@@ -51,10 +52,8 @@ public class ClickManager : MonoBehaviour {
 	void Update () {
 		if (selectedUnit) {
 			MoveHologram ();
-		} 
+		}
 
-		if (Input.GetKeyDown (KeyCode.Escape))
-			DeselectUnit ();
 
 		/*if (chosenTile != null) {
 			//This highlights the area when you arrive
@@ -65,14 +64,11 @@ public class ClickManager : MonoBehaviour {
 	}
 
 	public void receiveClick(Tile tile){
-		if (!canClick) {
+		if (!canClick)
 			return;
-		}
-		if (selectedTile == null) {
+		if (selectedTile == null)
 			return;
-		}
-
-
+		
 		//NO UNIT SELECTED
 		if (selectedUnit == null) {
 			//can we select this unit?
@@ -94,21 +90,16 @@ public class ClickManager : MonoBehaviour {
 
 						break;
 					default:
-						Debug.Log ("Unit State: " + tile.getOccupyingUnit ().GetComponent<Unit> ().getState ());
+						//Debug.Log ("Unit State: " + tile.getOccupyingUnit ().GetComponent<Unit> ().getState ());
 						break;
 					}
-
-
-
-				} else {
-					//tile not occupied. can't do anything...
-					return;
 				}
 				return;
 			}
 			return;
 		}
 
+        //UNIT IS SELECTED
 		if (selectedUnit != null) {
 			Unit.State unitState = selectedUnit.GetComponent<Unit> ().getState ();
 			switch(unitState){
@@ -215,6 +206,7 @@ public class ClickManager : MonoBehaviour {
 	}
 
 	public void MoveHologram(){
+        //if I have selected a unit, but do not have a chosen tile within bounds
 		if (selectedTile && !chosenTile && validTilesList.Contains(selectedTile))
 			selectedUnit.transform.position = mapManager.TileCoordToWorldCoord (selectedTile.getTileX (), selectedTile.getTileY ());
 			
@@ -247,23 +239,44 @@ public class ClickManager : MonoBehaviour {
 
 	public void DeselectUnit(){
 		if (selectedUnit != null) {
-			StopHologram ();
+
+            //If we cancel while selecting an action
+            if (selectedUnit.GetComponent<Unit>().getState() == Unit.State.ChooseAction)
+            {
+                selectedUnit.GetComponent<Unit>().setState(Unit.State.ChooseMove);
+                Tile currentUnitTile = mapManager.tileArray[selectedUnit.GetComponent<Unit>().getTileX(), selectedUnit.GetComponent<Unit>().getTileY()];
+
+                mapManager.cleanMap();
+                mapManager.cleanValidMovesTilesList();
+                mapManager.showValidMoves(selectedUnit, currentUnitTile, selectedUnit.GetComponent<Unit>().getSpeed(), "Move");
+                validTilesList = mapManager.getValidMovesTilesList(); //retrieve list of tiles
+                HighlightTiles("Blue"); //of valid tiles list
+
+                chosenTile = null;
+
+                return;
+            }
+            else //otherwise just stop everything
+            {
+
+                StopHologram();
 
 
-			selectedUnit.GetComponent<Unit> ().setIsSelected (false);
-			Unit.State unitState = selectedUnit.GetComponent<Unit> ().getState ();
-			if(unitState == Unit.State.ChooseAction || unitState == Unit.State.ChooseMove)
-				selectedUnit.GetComponent<Unit>().setState(Unit.State.Ready);
-			selectedUnit = null;
+                selectedUnit.GetComponent<Unit>().setIsSelected(false);
+                Unit.State unitState = selectedUnit.GetComponent<Unit>().getState();
+                if (unitState == Unit.State.ChooseAction || unitState == Unit.State.ChooseMove)
+                    selectedUnit.GetComponent<Unit>().setState(Unit.State.Ready);
+                selectedUnit = null;
 
-			chosenTile = null;
+                chosenTile = null;
 
-			RemoveHighlight ();
-			mapManager.cleanMap ();
-			mapManager.cleanValidMovesTilesList ();
+                RemoveHighlight();
+                mapManager.cleanMap();
+                mapManager.cleanValidMovesTilesList();
 
-			game.ui.updateText ();
-
+                game.ui.updateText();
+                return;
+            }
 		}
 	}
 

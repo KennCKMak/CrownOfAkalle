@@ -9,8 +9,9 @@ public class Tile : MonoBehaviour {
 	public MapManager map;
 	public int tileX;
 	public int tileY;
+    public float heightVariance;
 
-	public enum TileType { Empty, Grassland, Forest, Mountain }
+	public enum TileType { Empty, Grassland, Stone, Forest, Mountain, Water, Bridge }
 	public TileType tileType;
 
 	public GameObject tileVisualPrefab;
@@ -25,6 +26,12 @@ public class Tile : MonoBehaviour {
 	public bool selected;
 	public Shader shaderNormal;
 	public Shader shaderOutline;
+
+    private Outline[] outlineObjects;
+
+    void Awake()
+    {
+    }
 
 	void Start(){
 		
@@ -71,6 +78,7 @@ public class Tile : MonoBehaviour {
 	public void Setup(){
 		switch (tileType) {
 		case TileType.Grassland:
+        case TileType.Stone:
 			walkable = true;
 			movementCost = 1;
 			break;
@@ -79,6 +87,7 @@ public class Tile : MonoBehaviour {
 			movementCost = 2;
 			break;
 		case TileType.Mountain:
+        case TileType.Water:
 			walkable = false;
 			movementCost = Mathf.Infinity;
 			break;
@@ -87,7 +96,9 @@ public class Tile : MonoBehaviour {
 			break;
 
 		}
-	}
+
+
+    }
 
 	public int getTileX(){
 		return tileX;
@@ -156,16 +167,16 @@ public class Tile : MonoBehaviour {
 	}
 
 
-	public void setOutline(bool b){
-		if (b)
+	public void setOutline(bool b)
+    {
+        if (b)
 			transform.GetChild(0).gameObject.GetComponent<Renderer>().material.shader = shaderOutline;
 		else
 			transform.GetChild(0).gameObject.GetComponent<Renderer>().material.shader = shaderNormal;
+    }
 
-	}
 
-
-	public void setIsSelected(bool b){
+    public void setIsSelected(bool b){
 		selected = b;
 		setOutline (b);
 
@@ -180,18 +191,28 @@ public class Tile : MonoBehaviour {
 			if(color == "Blue"){
 				transform.FindChild ("HighlightBlue").gameObject.SetActive (true);
 				transform.FindChild("HighlightRed").gameObject.SetActive(false);
-			} if (color == "Red") {
-				transform.FindChild ("HighlightBlue").gameObject.SetActive (false);
-				transform.FindChild("HighlightRed").gameObject.SetActive(true);
-			}		
+			}
+            if (color == "Red")
+            {
+                transform.FindChild("HighlightBlue").gameObject.SetActive(false);
+                transform.FindChild("HighlightRed").gameObject.SetActive(true);
+            }
 		}
+        else
+        {
+            transform.FindChild("HighlightBlue").gameObject.SetActive(false);
+            transform.FindChild("HighlightRed").gameObject.SetActive(false);
+        }
 	}
 
 	public void setHighlighted(bool b){
+
+        
 		if (!b) {
 			transform.FindChild ("HighlightBlue").gameObject.SetActive (false);
 			transform.FindChild("HighlightRed").gameObject.SetActive(false);
 		}
+        
 	}
 }
 

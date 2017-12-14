@@ -50,8 +50,6 @@ public class AudioManager : MonoBehaviour {
 	}
 
 	void Update() {
-		if (Input.GetKeyDown (KeyCode.M))
-			SwitchBGM ();
 	}
 
 

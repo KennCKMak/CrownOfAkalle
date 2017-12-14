@@ -19,6 +19,7 @@ public class CombatManager : MonoBehaviour {
 
 	public float elapsedTime;
 	protected float introSimulationTime = 1.0f;
+	protected float minSimulationTime = 8.0f;
 	protected float maxSimulationTime = 16.0f;
 	protected float endSimulationTime = 22.0f;
 	SimulationState simState;
@@ -258,6 +259,7 @@ public class CombatManager : MonoBehaviour {
 			}
 
 			simState = SimulationState.Playing;
+			Debug.Log ("Sim: Starting");
 		}
 
 		if (attackerDeaths >= requiredAttackerDeaths) {
@@ -271,13 +273,23 @@ public class CombatManager : MonoBehaviour {
 			}
 		}
 
-		if (attackerDeaths >= requiredAttackerDeaths && defenderDeaths >= requiredDefenderDeaths && simState == SimulationState.Playing) {
+		//if entirety of oen side is wiped out
+		if (attackerDeaths >= AttackingUnits.Count || defenderDeaths >= DefendingUnits.Count){
+			if (simState == SimulationState.Playing && elapsedTime > minSimulationTime) {
+				simState = SimulationState.Ending;
+				elapsedTime = endSimulationTime - 2.0f;
+			}
+		}
+
+		if (attackerDeaths >= requiredAttackerDeaths && defenderDeaths >= requiredDefenderDeaths 
+			&& simState == SimulationState.Playing  && elapsedTime > minSimulationTime) {
+
 			simState = SimulationState.Ending;
 			elapsedTime = endSimulationTime - 2.0f;
 		}
 		if (elapsedTime >= maxSimulationTime && simState == SimulationState.Playing) {
 			simState = SimulationState.Ending;
-			//Debug.Log ("Switching to Ending");
+			elapsedTime = endSimulationTime - 2.0f;
 		}
 
 		if (elapsedTime >= endSimulationTime && simState == SimulationState.Ending) {
@@ -292,10 +304,14 @@ public class CombatManager : MonoBehaviour {
 			unit.GetComponent<UnitSim> ().StopSim ();
 		foreach (GameObject unit in DefendingUnits) 
 			unit.GetComponent<UnitSim> ().StopSim ();
+		
 		simulationRunning = false;
+
+		//checks the actual game itself for killed units
 		game.unit.ScanForDeadUnits ();
 		game.click.canClick = true;
 		game.camManager.setCameraState (CameraManager.CameraState.Strategy);
+
 
 		attacker.getAnimator ().SetTrigger ("Attack");
 		attacker.GetComponent<Unit> ().setState (Unit.State.Done);
@@ -340,10 +356,27 @@ public class CombatManager : MonoBehaviour {
 	public void addDeath(UnitSim.UnitSide side){
 		if (side == UnitSim.UnitSide.Attacker) {
 			attackerDeaths++;
-		} else if (side == UnitSim.UnitSide.Defender) {
+		}
+        if (side == UnitSim.UnitSide.Defender) {
 			defenderDeaths++;
 		}
 	}
+
+    //used by unitsim to prevent going over
+    public bool RequestDeathPermission(UnitSim.UnitSide side)
+    {
+        if (side == UnitSim.UnitSide.Attacker)
+        {
+            if (attackerDeaths <= requiredAttackerDeaths)
+                return true;
+        }
+        if (side == UnitSim.UnitSide.Defender)
+        {
+            if (defenderDeaths <= requiredDefenderDeaths)
+                return true;
+        }
+        return false;
+    }
 
 	void SpawnFormation(Vector3 start, List<GameObject> unitList, UnitManager.Faction faction){
 		//start at 499.5

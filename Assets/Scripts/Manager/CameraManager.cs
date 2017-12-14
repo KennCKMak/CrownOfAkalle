@@ -23,11 +23,7 @@ public class CameraManager : MonoBehaviour {
 	}
 
 	void Update(){
-		if (Input.GetKeyDown (KeyCode.R))
-			setCameraState (CameraState.Strategy);
 
-		if (Input.GetKeyDown (KeyCode.F))
-			setCameraState (CameraState.Simulation);
 	}
 
 	public CameraState getCameraState(){

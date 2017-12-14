@@ -104,14 +104,16 @@ public class UnitManager : MonoBehaviour {
 				unitScript.factionColour = FactionColours[(int)faction];
 
 				unitScript.shaderNormal = shaderStandard;
-				if(faction == Faction.Player)
-					unitScript.shaderOutline = shaderOutlineGreen;
-				else if(faction == Faction.Enemy)
-					unitScript.shaderOutline = shaderOutlineRed;
-				else 
-					unitScript.shaderOutline = shaderOutlineBlack;
-				//setting script values
-				unitScript.game = game;
+                if (faction == Faction.Player) {
+                    unitScript.SetOutlineColor(OutlineEffect.OutlineColor.Green);
+                    unitScript.RotateUnitFace("North");
+                } else if (faction == Faction.Enemy) { 
+                    unitScript.SetOutlineColor(OutlineEffect.OutlineColor.Red);
+                    unitScript.RotateUnitFace("South");
+                } else
+                    unitScript.SetOutlineColor(OutlineEffect.OutlineColor.Black);
+                //setting script values
+                unitScript.game = game;
 				unitScript.map = mapManager;
 				unitScript.combatManager = combatManager;
 				unitScript.unitManager = this;
@@ -124,7 +126,7 @@ public class UnitManager : MonoBehaviour {
 
 				unitScript.setSimPrefab (getAssociatedSimPrefab (unitName));
 
-				unitScript.SetupUnit ();
+				unitScript.SetUpUnit ();
 
 				loopRunning = false;
 			}
