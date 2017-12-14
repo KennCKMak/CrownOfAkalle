@@ -4,20 +4,15 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
-	[HideInInspector]
-	public MapManager map;
-	[HideInInspector]
-	public UnitManager unit;
-	[HideInInspector]
-	public CombatManager combat;
-	[HideInInspector]
-	public ClickManager click;
-	[HideInInspector]
-	public CameraManager camManager;
-	[HideInInspector]
-	public TurnManager turn;
-	[HideInInspector]
-	public UIManager ui;
+	[HideInInspector] public MapManager map;
+	[HideInInspector] public UnitManager unit;
+	[HideInInspector] public CombatManager combat;
+	[HideInInspector] public ClickManager click;
+	[HideInInspector] public CameraManager camManager;
+	[HideInInspector] public TurnManager turn;
+	[HideInInspector] public UIManager ui;
+    [HideInInspector] public AIManager AI;
+    public List<Unit> tempUnitsList = new List<Unit>();
 
 	[HideInInspector]
 	public AudioManager audioManager;
@@ -32,20 +27,20 @@ public class GameManager : MonoBehaviour {
 		camManager = GetComponent<CameraManager> ();
 		turn = GetComponent<TurnManager> ();
 		ui = GetComponent<UIManager> ();
-
+        AI = GetComponent<AIManager>();
 		audioManager = FindObjectOfType<AudioManager> ();
 	}
 
+    void Start()
+    {
+        Time.timeScale = 1.0f;
+    }
 
-
-	void Update () {
+    void Update() {
+        
 
         if (Input.GetMouseButtonDown(1))
             click.DeselectUnit();
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-            click.DeselectUnit();
-
 
         if (Input.GetKeyDown (KeyCode.Alpha2)) 
 			unit.DeleteAllUnits ();

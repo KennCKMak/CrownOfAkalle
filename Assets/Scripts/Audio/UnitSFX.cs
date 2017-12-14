@@ -104,7 +104,6 @@ public class UnitSFX : MonoBehaviour {
 			SetUpAttackClip ("ArcherAttack1"); //debugging purposes only
 
 		SetUpDamagedSound ("Damaged");
-		Debug.Log ("OtherAllies = " + otherAllies);
 
 		sfxIsInitialized = true;
 	}

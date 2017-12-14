@@ -27,7 +27,7 @@ public class MapManager : MonoBehaviour {
 	Node[,] NodeList;
 	List<Node> currentPath = null; //for pathfinding
 	List<Tile> validTiles; //used for setting valid tiles 
-
+    public List<Tile> attackingTiles;
 
 	[SerializeField] int mapSizeX = 20;
 	[SerializeField] int mapSizeY = 20;
@@ -57,8 +57,9 @@ public class MapManager : MonoBehaviour {
 		GeneratePathfindingGraph ();
 
 		validTiles = new List<Tile> ();
+        attackingTiles = new List<Tile>();
 
-	}
+    }
 
 
 	void GenerateMapData(){
@@ -87,14 +88,37 @@ public class MapManager : MonoBehaviour {
         //making water
         for (y = 0; y < mapSizeY; y++)
         {
+            tileArray[7, y].setTileType(Tile.TileType.Water);
+            tileArray[7, y].setTileVisualPrefab(tileWaterPrefab);
             tileArray[8, y].setTileType(Tile.TileType.Water);
             tileArray[8, y].setTileVisualPrefab(tileWaterPrefab);
         }
         //bridge
+
+        for (x=0; x<12; x++)
+        {
+            tileArray[x, 9].setTileType(Tile.TileType.Stone);
+            tileArray[x, 9].setTileVisualPrefab(tileStonePrefab);
+            tileArray[x, 10].setTileType(Tile.TileType.Stone);
+            tileArray[x, 10].setTileVisualPrefab(tileStonePrefab);
+        }
+
         tileArray[8, 10].setTileType(Tile.TileType.Bridge);
         tileArray[8, 10].setTileVisualPrefab(tileBridgePrefab);
-        tileArray[8, 4].setTileType(Tile.TileType.Bridge);
-        tileArray[8, 4].setTileVisualPrefab(tileBridgePrefab);
+        tileArray[8, 9].setTileType(Tile.TileType.Bridge);
+        tileArray[8, 9].setTileVisualPrefab(tileBridgePrefab);
+        tileArray[7, 10].setTileType(Tile.TileType.Bridge);
+        tileArray[7, 10].setTileVisualPrefab(tileBridgePrefab);
+        tileArray[7, 9].setTileType(Tile.TileType.Bridge);
+        tileArray[7, 9].setTileVisualPrefab(tileBridgePrefab);
+
+        for (x = 12; x < mapSizeX; x++)
+        {
+            tileArray[x, 10].setTileType(Tile.TileType.Stone);
+            tileArray[x, 10].setTileVisualPrefab(tileStonePrefab);
+            tileArray[x, 11].setTileType(Tile.TileType.Stone);
+            tileArray[x, 11].setTileVisualPrefab(tileStonePrefab);
+        }
 
         //Make a big forest area
         for (x = 3; x <= 5; x++) {
@@ -103,8 +127,18 @@ public class MapManager : MonoBehaviour {
 				tileArray[x,y].setTileVisualPrefab(tileForestPrefab);
 			}
 		}
-		//Making a mountain range
-		for (y = 0; y < mapSizeY; y++) {
+
+        tileArray[8, 4].setTileType(Tile.TileType.Bridge);
+        tileArray[8, 4].setTileVisualPrefab(tileBridgePrefab);
+        tileArray[8, 3].setTileType(Tile.TileType.Bridge);
+        tileArray[8, 3].setTileVisualPrefab(tileBridgePrefab);
+        tileArray[7, 4].setTileType(Tile.TileType.Bridge);
+        tileArray[7, 4].setTileVisualPrefab(tileBridgePrefab);
+        tileArray[7, 3].setTileType(Tile.TileType.Bridge);
+        tileArray[7, 3].setTileVisualPrefab(tileBridgePrefab);
+
+        //Making a mountain range
+        for (y = 0; y < mapSizeY; y++) {
 			tileArray [0, y].setTileType(Tile.TileType.Mountain);
 			tileArray [0, y].setTileVisualPrefab(tileMountainPrefab);
 
@@ -219,6 +253,7 @@ public class MapManager : MonoBehaviour {
 
 	public void GeneratePathTo(GameObject selectedUnit, Tile tile){
 		if (selectedUnit != null) {
+
 			currentPath = null;
 			selectedUnit.GetComponent<Unit> ().setCurrentPath (null);
 
@@ -257,7 +292,6 @@ public class MapManager : MonoBehaviour {
 					dist [v] = Mathf.Infinity;
 					prev [v] = null;
 				}
-
 				unvisited.Add (v);
 			}
 			//unviisted not empty yet...
@@ -320,7 +354,7 @@ public class MapManager : MonoBehaviour {
 
 	//gives a list of tiles to be highlighted (within range of the given tile)
 	public void showValidMoves(GameObject myUnit, Tile tile, int range, string type){
-		List<Node> validMoves = new List<Node> ();
+		List<Node> validMoves = new List<Node> (); //neighbours
 
 		if (!tile.isOccupied ()) {
 			validTiles.Add(tile); //add my current tiles
@@ -360,19 +394,30 @@ public class MapManager : MonoBehaviour {
 	}
 
 	public void MoveUnitTowards(Tile tile, GameObject selectedUnit){
+        if (tile == tileArray[selectedUnit.GetComponent<Unit>().getTileX(), selectedUnit.GetComponent<Unit>().getTileY()])
+        {
+
+            selectedUnit.GetComponent<Unit>().setCurrentPath(null);
+            return;
+        }
+
 		GeneratePathTo (selectedUnit, tile);
-		//if you have enough movement...
-		if (selectedUnit.GetComponent<Unit> ().hasEnoughMove()) {
+        //if you have enough movement...
+        if (selectedUnit.GetComponent<Unit>().hasEnoughMove()) {
 
-			//change occupied space of the selected unit before moving
-			tileArray [selectedUnit.GetComponent<Unit> ().getTileX (),
-				selectedUnit.GetComponent<Unit> ().getTileY ()].setIsOccupied (false, null);
-			//our new tile is now our selected one
-			tile.setIsOccupied (true, selectedUnit);
-
-			return;
-		}
+            //change occupied space of the selected unit before moving
+            tileArray[selectedUnit.GetComponent<Unit>().getTileX(),
+                selectedUnit.GetComponent<Unit>().getTileY()].setIsOccupied(false, null);
+            //our new tile is now our selected one
+            tile.setIsOccupied(true, selectedUnit);
+            return;
+        }
+        else
+        {
+            selectedUnit.GetComponent<Unit>().setCurrentPath(null);
+        }
 	}
+
 
 	public void cleanValidMovesTilesList(){
 		validTiles.Clear ();
@@ -397,6 +442,169 @@ public class MapManager : MonoBehaviour {
 		return (Mathf.Abs (tile2.getTileX () - tile1.getTileX ()) + Mathf.Abs (tile2.getTileY () - tile1.getTileY ()));
 	}
 
+
+    
+    /// <summary>
+    /// Used by the AI to check for what enemies are near it, first using movement range then atk range
+    /// </summary>
+    /// <param name="myUnit"></param>
+    /// <param name="tile"></param>
+    /// <param name="range"></param>
+    /// <param name="atkRange"></param>
+    /// <param name="unitsFound"></param>
+    public void FindEnemiesInRange(Unit myUnit, Tile tile, int range, int atkRange, List<Unit> unitsFound)
+    {
+        List<Node> NodesVisited = new List<Node>();
+
+        int nextMoveCost = range;
+
+        Node source = NodeList[tile.getTileX(), tile.getTileY()];
+        NodesVisited.Add(source);
+        
+        //recursive into others while taking away movement points
+        for (int i = 0; i < source.neighbours.Count; i++)
+        {
+            nextMoveCost = range - (int)CostToEnterTile(source.x, source.y, source.neighbours[i].x, source.neighbours[i].y);
+
+            if (nextMoveCost >= 0 && !NodesVisited.Contains(source.neighbours[i]))
+            {
+                FindEnemiesInRange(myUnit, tileArray[source.neighbours[i].x, source.neighbours[i].y], nextMoveCost, atkRange, unitsFound);
+            }
+        }
+
+        if (nextMoveCost <= 0)
+//            && GetTileDistance(tileArray[myUnit.getTileX(), myUnit.getTileY()], tile) >= myUnit.getWeaponRange())
+        {
+            FindEnemiesInAtkRange(myUnit, tile, atkRange, unitsFound);
+        }
+        
+
+    }
+
+    /// <summary>
+    /// The second part. Now uses atk range and send units found back to the AI list
+    /// </summary>
+    /// <param name="myUnit"></param>
+    /// <param name="tile"></param>
+    /// <param name="atkRange"></param>
+    /// <param name="unitsFound"></param>
+    public void FindEnemiesInAtkRange(Unit myUnit, Tile tile, int atkRange, List<Unit> unitsFound)
+    {
+        List<Node> NodesVisited = new List<Node>();
+        Node source = NodeList[tile.getTileX(), tile.getTileY()];
+        NodesVisited.Add(source);
+
+        if (tileArray[source.x, source.y].isOccupied())
+        {
+            if (tileArray[source.x, source.y].getOccupyingUnit().GetComponent<Unit>().faction != myUnit.faction
+            && !unitsFound.Contains(tileArray[source.x, source.y].getOccupyingUnit().GetComponent<Unit>()))
+            {
+                unitsFound.Add(tileArray[source.x, source.y].getOccupyingUnit().GetComponent<Unit>());
+            }
+        }
+        //recursive into others while taking away attack points
+        for (int i = 0; i < source.neighbours.Count; i++)
+        {
+            int nextMoveCost = atkRange - 1;
+
+            if (nextMoveCost >= 0 && !NodesVisited.Contains(source.neighbours[i]))
+            {
+                FindEnemiesInAtkRange(myUnit, tileArray[source.neighbours[i].x, source.neighbours[i].y], nextMoveCost, unitsFound);
+            }
+        }
+    }
+
+
+
+
+    public Tile FindAITileDestination(Unit myUnit, Unit enemyUnit)
+    {
+        attackingTiles.Clear();
+        GetPositionsAvailableToAttack(myUnit, enemyUnit, tileArray[enemyUnit.getTileX(), enemyUnit.getTileY()], myUnit.getWeaponRange());
+        //gets and stores into attacking tiles
+        Tile closestTile = findClosestTileFromLocation(myUnit, attackingTiles);
+        return closestTile;
+    }
+
+
+    /// <summary>
+    /// Ai tries to find where to place the character so he can attack. It works backwards,
+    /// getting atkRange from the enemy character, then we use the movement range to move our character
+    /// to the appropriate tiles. Tiles are stored into attackingTiles
+    /// </summary>
+    public void GetPositionsAvailableToAttack(Unit myUnit, Unit enemyUnit, Tile tile, int range)
+    {
+        List<Node> NodesVisited = new List<Node>();
+        Node source = NodeList[tile.getTileX(), tile.getTileY()];
+
+        //if the tile isn't occupied, and we don't already have it
+        if (!tileArray[tile.getTileX(), tile.getTileY()].isOccupied() && 
+            !attackingTiles.Contains(tileArray[source.x, source.y]))
+        {
+            NodesVisited.Add(source);
+            attackingTiles.Add(tileArray[tile.getTileX(), tile.getTileY()]);
+        } else if (tileArray[tile.getTileX(), tile.getTileY()].isOccupied() && 
+            tileArray[tile.getTileX(), tile.getTileY()].getOccupyingUnit().GetComponent<Unit>() == myUnit)
+        {
+            attackingTiles.Add(tileArray[tile.getTileX(), tile.getTileY()]);
+            NodesVisited.Add(source);
+        }
+
+        //recursive into others while taking away attack points
+        for (int i = 0; i < source.neighbours.Count; i++)
+        {
+            int nextMoveCost = range - 1; //its a weapon, distance are not affected
+            if (nextMoveCost >= 0 && !NodesVisited.Contains(source.neighbours[i]))
+            {
+                GetPositionsAvailableToAttack(myUnit, enemyUnit, tileArray[source.neighbours[i].x, source.neighbours[i].y], nextMoveCost);
+            }
+        }
+    }
+
+    public Tile findClosestTileFromLocation(Unit myUnit, List<Tile> tiles)
+    {
+
+        Tile lowestTile = null;
+        int lowestDist = 500;
+
+        List<int> distance = new List<int>(); //sees which Tile we should take
+        List<int> indexTrack = new List<int>();
+
+        for(int i = 0; i < tiles.Count; i++)
+        {
+            //tiles[i].setHighlighted(true, "Red");
+
+            if (tileArray[myUnit.getTileX(), myUnit.getTileY()] == tiles[i])
+            {
+               // Debug.Log("Already on it");
+                return tiles[i];
+            }
+
+
+            GeneratePathTo(myUnit.gameObject, tiles[i]);
+            if (currentPath != null)
+            {
+                distance.Add(currentPath.Count-1);
+                indexTrack.Add(i);
+            } 
+        }
+
+        for (int i = 0; i < distance.Count; i++)
+        {
+            if (distance[i] < lowestDist && distance[i] <= myUnit.getSpeed())
+            {
+                lowestDist = distance[i];
+                lowestTile = tiles[indexTrack[i]];
+            }
+        }
+        return lowestTile;
+    }
+
+    //public void GetPathToAvailableNodes(Unit )
+
+   
+
+    
 
 
 }

@@ -62,6 +62,9 @@ public class CombatManager : MonoBehaviour {
 		attacker = initiator;
 		defender = target;
 
+        attacker.setOutline(false);
+        defender.setOutline(false);
+
 		game.click.canClick = false;
 		game.camManager.setCameraState (CameraManager.CameraState.Simulation);
 
@@ -259,7 +262,7 @@ public class CombatManager : MonoBehaviour {
 			}
 
 			simState = SimulationState.Playing;
-			Debug.Log ("Sim: Starting");
+			//Debug.Log ("Sim: Starting");
 		}
 
 		if (attackerDeaths >= requiredAttackerDeaths) {
@@ -309,13 +312,17 @@ public class CombatManager : MonoBehaviour {
 
 		//checks the actual game itself for killed units
 		game.unit.ScanForDeadUnits ();
+
 		game.click.canClick = true;
+        game.AI.InvokeSetCanClick(2.0f);
+
 		game.camManager.setCameraState (CameraManager.CameraState.Strategy);
 
 
 		attacker.getAnimator ().SetTrigger ("Attack");
 		attacker.GetComponent<Unit> ().setState (Unit.State.Done);
-		defender.getAnimator ().SetTrigger ("TakeDamage");
+        defender.DelayAnimation("TakeDamage", 0.5f);
+		//defender.getAnimator ().SetTrigger ("TakeDamage");
 		game.unit.checkEndTurn ();
 
 
@@ -437,7 +444,7 @@ public class CombatManager : MonoBehaviour {
 		}
 	}
 
-	int CalculateDamage(Unit Attacker, Unit Defender, string combatType){
+	public int CalculateDamage(Unit Attacker, Unit Defender, string combatType){
 		int totalPool = 0; //expertise added together in melee
 
 		if (combatType == "Melee") //for melee, roll against each other

@@ -12,10 +12,10 @@ using UnityEngine;
 
 public class UnitManager : MonoBehaviour {
 	public enum Faction{
-		Player,
-		Ally,
-		Enemy,
-		Neutral
+		Player, //blue
+		Ally, //purple
+		Enemy, //red
+		Neutral //black
 	}
 
 	public enum UnitName {
@@ -27,26 +27,26 @@ public class UnitManager : MonoBehaviour {
 	}
 
 	public Material[] FactionColours;
+    public Material[] FactionColoursDark;
+    public Material[] HorseMaterial = new Material[2];
+
 	public GameObject[] UnitPrefabs;
 	public GameObject[] UnitSimPrefabs;
 
 
 	int ArraySize;
 	protected GameObject[] unitObjArray;
-	protected Unit[] unitArray;
-	protected List<GameObject> deadUnits;
+	public Unit[] unitArray;
+	public List<GameObject> deadUnits;
 	//public List<GameObject> Units;
 
-	public GameManager game;
+	[HideInInspector] public GameManager game;
 	MapManager mapManager;
 	CombatManager combatManager;
 
 	[SerializeField] protected GameObject HealthBarPrefab;
 
 	protected Shader shaderStandard;
-	protected Shader shaderOutlineBlack;
-	protected Shader shaderOutlineGreen;
-	protected Shader shaderOutlineRed;
 
 
 
@@ -64,9 +64,6 @@ public class UnitManager : MonoBehaviour {
 		EmptyArrays ();
 
 		shaderStandard = Shader.Find ("Standard");
-		shaderOutlineBlack = Shader.Find ("Outline/Black");
-		shaderOutlineGreen = Shader.Find ("Outline/Green");
-		shaderOutlineRed = Shader.Find ("Outline/Red");
 
 
 	}
@@ -102,6 +99,13 @@ public class UnitManager : MonoBehaviour {
 
 				unitScript.faction = faction;
 				unitScript.factionColour = FactionColours[(int)faction];
+                unitScript.factionColourUsed = FactionColoursDark[(int)faction];
+
+                if (unitScript.isMounted())
+                {
+                    unitScript.horseMaterial = HorseMaterial[0];
+                    unitScript.horseMaterialUsed = HorseMaterial[1];
+                }
 
 				unitScript.shaderNormal = shaderStandard;
                 if (faction == Faction.Player) {
@@ -168,6 +172,14 @@ public class UnitManager : MonoBehaviour {
 
 	}
 
+    public void RestoreAllMovement()
+    {
+        RestoreMovement(Faction.Ally);
+        RestoreMovement(Faction.Neutral);
+        RestoreMovement(Faction.Player);
+        RestoreMovement(Faction.Enemy);
+    }
+
 	public void RestoreMovement(Faction faction){
 		for (int i = 0; i < ArraySize; i++) {
 			if (unitObjArray [i] != null && unitArray [i].faction == faction) {
@@ -196,19 +208,35 @@ public class UnitManager : MonoBehaviour {
 		ScanForDeadUnits ();
 	}
 
-	public void checkEndTurn(){
-		bool endTurn = true;
-		Faction currFaction = game.turn.getCurrentTurn();
-		for (int i = 0; i < ArraySize; i++) {
-			if (unitArray[i] != null){
-				if (unitArray [i].faction == currFaction && unitArray [i].getState () != Unit.State.Done) {
-					endTurn = false;
-					return;
-				}
-			}
-		}
-		if (endTurn)
-			game.turn.switchTurn ();
-	}
+    public void checkEndTurn()
+    {
+        
+        bool endTurn = true;
+        Faction currFaction = Faction.Player;// game.turn.getCurrentTurn();
+        for (int i = 0; i < ArraySize; i++)
+        {
+            if (unitArray[i] != null)
+            {
+                if (unitArray[i].faction == currFaction && unitArray[i].getState() != Unit.State.Done)
+                {
+                    endTurn = false;
+                    return;
+                }
+            }
+        }
+        if (endTurn)
+        {
+            game.turn.switchTurn();
+        }
+    }
 
+    public GameObject[] returnUnitObjArray()
+    {
+        return unitObjArray;
+    }
+
+    public Unit[] returnUnitArray()
+    {
+        return unitArray;
+    }
 }

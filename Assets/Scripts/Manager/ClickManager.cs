@@ -30,8 +30,7 @@ public class ClickManager : MonoBehaviour {
 	[HideInInspector] public MapManager mapManager;
 	[HideInInspector] public UnitManager unitManager;
 	[HideInInspector] public TurnManager turnManager;
-
-    [SerializeField]
+    
     private bool isHologram = false;
 
 	// Use this for initialization
@@ -110,7 +109,7 @@ public class ClickManager : MonoBehaviour {
 					chosenTile = tile;
 
 					RemoveHighlight ();
-					mapManager.cleanValidMovesTilesList (); //removes old map manager
+					mapManager.cleanValidMovesTilesList (); //removes old map list
 					mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
 						//this one sets the list again
 					validTilesList = mapManager.getValidMovesTilesList (); //retrieve list of tiles
@@ -152,7 +151,7 @@ public class ClickManager : MonoBehaviour {
 					} else if (tile.isOccupied () && tile.getOccupyingUnit() != selectedUnit) {
 						//check if we clicked on ally or friendly...
 						if (tile.getOccupyingUnit ().GetComponent<Unit> ().faction != selectedUnit.GetComponent<Unit>().faction) {
-							Debug.Log ("Targeted enemy");
+
 							//Calculate weapon range
 							int dist = mapManager.GetTileDistance (tile, chosenTile);
 							if (dist == 1 && selectedUnit.GetComponent<Unit> ().isMelee()) {
@@ -167,7 +166,6 @@ public class ClickManager : MonoBehaviour {
 
 
 								canClick = false;
-
 							} else if (dist >= 2 && selectedUnit.GetComponent<Unit> ().isRanged() && selectedUnit.GetComponent<Unit>().getWeaponRange() >= dist) {
 								selectedUnit.GetComponent<Unit> ().setIsAttacking(true);
 								selectedUnit.GetComponent<Unit> ().setTarget (tile.getOccupyingUnit ().GetComponent<Unit>());

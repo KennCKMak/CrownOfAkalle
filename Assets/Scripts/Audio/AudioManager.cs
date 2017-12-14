@@ -7,6 +7,7 @@ using UnityEngine.Audio;
 //AudioManager - Screen, UI, BGM stuff
 public class AudioManager : MonoBehaviour {
 
+    public bool mute;
 	public BGM[] bgm;
 	public Sound[] sfx;
 	public static AudioManager instance;
@@ -56,6 +57,8 @@ public class AudioManager : MonoBehaviour {
 
 
 	public void PlaySFX(string soundName){
+        if (mute)
+            return;
 		Sound s = Array.Find (sfx, sound => sound.name == soundName);
 		if (s == null)
 			Debug.LogWarning ("Sound: " + soundName + " was not found");
@@ -64,8 +67,11 @@ public class AudioManager : MonoBehaviour {
 	}
 
 
-	public void PlayBGM(string bgmName, bgmSongVersion songType){
-		BGM music = Array.Find (bgm, bgm => bgm.name == bgmName);
+	public void PlayBGM(string bgmName, bgmSongVersion songType)
+    {
+        if (mute)
+            return;
+        BGM music = Array.Find (bgm, bgm => bgm.name == bgmName);
 
 		if (music == null)
 			Debug.LogWarning ("BGM: " + bgmName + " was not found");
@@ -85,8 +91,11 @@ public class AudioManager : MonoBehaviour {
 		}
 	}
 
-	public void SwitchBGM(){
-		float currentTime = bgmSource.time;
+	public void SwitchBGM()
+    {
+        if (mute)
+            return;
+        float currentTime = bgmSource.time;
 		float currentLength = bgmSource.clip.length;
 
 		if (bgmCurrentVersion == bgmSongVersion.Stream) {
@@ -114,8 +123,11 @@ public class AudioManager : MonoBehaviour {
 		bgmSource.Play ();
 	}
 
-	public void SwitchBGMTo(bgmSongVersion newSongVersion){
-		if (bgmCurrentVersion == newSongVersion)
+	public void SwitchBGMTo(bgmSongVersion newSongVersion)
+    {
+        if (mute)
+            return;
+        if (bgmCurrentVersion == newSongVersion)
 			return;
 
 		float currentTime = bgmSource.time;

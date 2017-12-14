@@ -18,27 +18,34 @@ public class TurnManager : MonoBehaviour {
 	}
 
 	public void switchTurn(){
-		switch (currentTurn){
-		case UnitManager.Faction.Player:
-			setTurn (UnitManager.Faction.Enemy);
-			game.unit.RestoreMovement (UnitManager.Faction.Enemy);
-			break;
-		case UnitManager.Faction.Enemy:
-			setTurn (UnitManager.Faction.Player);
-			game.unit.RestoreMovement (UnitManager.Faction.Player);
-			break;
-		default:
-			break;
-		}
-			
-
-
-		game.ui.updateText ();
+        StartCoroutine(swapTurns(1.5f));
 	}
 
-	public void setTurn(UnitManager.Faction newTurn){
-		currentTurn = newTurn;
-	}
+    public void switchTurn(float f)
+    {
+        StartCoroutine(swapTurns(f));
+    }
+
+
+    protected IEnumerator swapTurns(float num){
+        yield return new WaitForSeconds(num);
+        switch (currentTurn)
+        {
+            case UnitManager.Faction.Player:
+                game.unit.RestoreAllMovement();
+                game.AI.AIStart(UnitManager.Faction.Enemy, UnitManager.Faction.Player);
+                currentTurn = UnitManager.Faction.Enemy;
+                break;
+            case UnitManager.Faction.Enemy:
+                game.unit.RestoreAllMovement();
+                game.AI.AIStop();
+                currentTurn = UnitManager.Faction.Player;
+                break;
+            default:
+                break;
+        }
+        game.ui.updateText();
+    }
 
 	public UnitManager.Faction getCurrentTurn(){
 		return currentTurn;

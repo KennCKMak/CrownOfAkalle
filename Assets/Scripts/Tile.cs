@@ -79,6 +79,7 @@ public class Tile : MonoBehaviour {
 		switch (tileType) {
 		case TileType.Grassland:
         case TileType.Stone:
+            case TileType.Bridge:
 			walkable = true;
 			movementCost = 1;
 			break;
@@ -92,7 +93,7 @@ public class Tile : MonoBehaviour {
 			movementCost = Mathf.Infinity;
 			break;
 		default:
-			Debug.Log ("Failed to load TileType");
+			Debug.Log ("Failed to load TileType: " + tileType.ToString());
 			break;
 
 		}

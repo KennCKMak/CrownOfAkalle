@@ -10,7 +10,6 @@
 /// </summary>
 
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -29,8 +28,12 @@ public class Unit : MonoBehaviour {
 	[HideInInspector]public Shader shaderNormal;
 	[HideInInspector]public Shader shaderOutline;
 	[HideInInspector]public Material factionColour;
+    [HideInInspector]public Material factionColourUsed;
 
-	[SerializeField] protected int tileX;
+    [HideInInspector]public Material horseMaterial;
+    [HideInInspector] public Material horseMaterialUsed;
+
+    [SerializeField] protected int tileX;
 	[SerializeField] protected int tileY;
 	[HideInInspector]public MapManager map;
 	List<Node> currentPath = null;
@@ -128,8 +131,10 @@ public class Unit : MonoBehaviour {
 		HealthPerUnit = MaxHealth / MaxUnitSize;
 
 		foreach (GameObject part in Parts) {
-            if(part.name != "WK_Horse_A")
-			    part.GetComponent<Renderer> ().material = factionColour;
+            if (part.name != "WK_Horse_A")
+                part.GetComponent<Renderer>().material = factionColour;
+            else
+                part.GetComponent<Renderer>().material = horseMaterial;
 		}
 		CreateHealthBar ();
 
@@ -143,45 +148,62 @@ public class Unit : MonoBehaviour {
 		NewTurn ();
 	}
 
-	public void checkState(){
-		switch (unitState) {
-		case State.Ready:
-		case State.ChooseAction:
-		case State.ChooseMove:
-		case State.Done:
-			attacking = false;
-			animator.SetBool ("isIdle", true);
-			animator.SetBool ("isMoving", false);
-			animator.SetBool ("isAttacking", false);
-			break;
-		case State.Action:
-			animator.SetBool ("isIdle", false);
-			animator.SetBool ("isMoving", true);
-			if (attacking)
-				animator.SetBool ("isAttacking", true);
-			else
-				animator.SetBool ("isAttacking", false);
-			break;
+    public void checkState() {
+        switch (unitState) {
+            case State.Ready:
+            case State.ChooseAction:
+            case State.ChooseMove:
+            case State.Done:
+                attacking = false;
+                animator.SetBool("isIdle", true);
+                animator.SetBool("isMoving", false);
+                animator.SetBool("isAttacking", false);
+                break;
+            case State.Action:
+                animator.SetBool("isIdle", false);
+                animator.SetBool("isMoving", true);
+                if (attacking)
+                    animator.SetBool("isAttacking", true);
+                else
+                    animator.SetBool("isAttacking", false);
+                break;
 
-		case State.Attack:
-			animator.SetBool ("isIdle", false);
-			animator.SetBool ("isMoving", false);
-			animator.SetBool ("isAttacking", false);
-			animator.SetInteger ("AnimVariance", Random.Range (1, 2 + 1));
-			animator.SetTrigger ("Attack");
-			attacking = false;
-			break;
-		case State.Dead:
-			animator.SetBool ("isIdle", false);
-			animator.SetBool ("isMoving", false);
-			animator.SetBool ("isAttacking", false);
-			animator.SetInteger ("AnimVariance", Random.Range(1, 2+1));
-			animator.SetBool ("isDead", true);
-			break;
-		default:
-			break;
+            case State.Attack:
+                animator.SetBool("isIdle", false);
+                animator.SetBool("isMoving", false);
+                animator.SetBool("isAttacking", false);
+                animator.SetInteger("AnimVariance", Random.Range(1, 2 + 1));
+                animator.SetTrigger("Attack");
+                attacking = false;
+                break;
+            case State.Dead:
+                animator.SetBool("isIdle", false);
+                animator.SetBool("isMoving", false);
+                animator.SetBool("isAttacking", false);
+                animator.SetInteger("AnimVariance", Random.Range(1, 2 + 1));
+                animator.SetBool("isDead", true);
+                break;
+            default:
+                break;
 
-		}
+        }
+        if (unitState != Unit.State.Done)
+        {
+            foreach (GameObject part in Parts)
+                if (part.name != "WK_Horse_A")
+                    part.GetComponent<Renderer>().material = factionColour;
+                else
+                    part.GetComponent<Renderer>().material = horseMaterial;
+        }
+        else
+        {
+            foreach (GameObject part in Parts)
+                if (part.name != "WK_Horse_A")
+                    part.GetComponent<Renderer>().material = factionColourUsed;
+                else
+                    part.GetComponent<Renderer>().material = horseMaterialUsed;
+        }
+        
 	}
 
 	//________UNIT STATE_______//
@@ -220,7 +242,6 @@ public class Unit : MonoBehaviour {
 
     public void SetOutlineColor(OutlineEffect.OutlineColor newColor)
     {
-        Debug.Log("called w/ " + newColor.ToString());
         this.outlineColor = newColor;
     }
 
@@ -282,6 +303,11 @@ public class Unit : MonoBehaviour {
 	public void setCurrentPath(List<Node> newPath){
 		currentPath = newPath;
 	}
+
+    public List<Node> getCurrentPath()
+    {
+        return currentPath;
+    }
 
 	public bool hasEnoughMove(){
 		if (currentPath == null)
@@ -620,9 +646,17 @@ public class Unit : MonoBehaviour {
 
 
 	public Animator getAnimator(){
-
 		return this.animator;
 	}
+
+    public void DelayAnimation(string animationName, float f)
+    {
+        Invoke("TakeDamageAnimation", f);
+    }
+    public void TakeDamageAnimation()
+    {
+        animator.SetTrigger("TakeDamage");
+    }
 
 	public void SetUpUnitSFX(){
 		if (!gameObject.GetComponent<UnitSFX> ())

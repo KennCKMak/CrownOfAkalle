@@ -8,7 +8,8 @@ public class UIManager : MonoBehaviour {
 	private GameManager game;
 	public GameObject canvas;
 
-
+    public GameObject panelLeft;
+    public GameObject panelRight;
 	public Text textCurrentTurn;
 	public Text textUnitStats;
 	public Text textHoveredUnitStats;
@@ -20,9 +21,11 @@ public class UIManager : MonoBehaviour {
 		canvas = transform.FindChild ("Canvas").gameObject;
 		canvas.transform.SetParent(GameObject.Find("CameraStrategy").gameObject.transform);
 
+        panelLeft = canvas.transform.FindChild("PanelLeft").gameObject;
+        panelRight = canvas.transform.FindChild("PanelRight").gameObject;
 		textCurrentTurn = canvas.transform.FindChild ("textCurrentTurn").gameObject.GetComponent<Text> ();
-		textUnitStats = canvas.transform.FindChild ("textUnitStats").gameObject.GetComponent<Text> ();
-		textHoveredUnitStats = canvas.transform.FindChild ("textHoveredUnitStats").gameObject.GetComponent<Text> ();
+		textUnitStats = panelLeft.transform.FindChild ("textUnitStats").gameObject.GetComponent<Text> ();
+		textHoveredUnitStats = panelRight.transform.FindChild ("textHoveredUnitStats").gameObject.GetComponent<Text> ();
 		updateText ();
 	}
 
@@ -34,7 +37,7 @@ public class UIManager : MonoBehaviour {
 	}
 
 	public void SpawnUnits(){
-		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 9, 3, UnitManager.Faction.Player);
+		//game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 9, 3, UnitManager.Faction.Player);
 		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 10, 3, UnitManager.Faction.Player);
 		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 11, 3, UnitManager.Faction.Player);
 		game.unit.CreateUnit (UnitManager.UnitName.ArcherUnit, 10, 2, UnitManager.Faction.Player);
@@ -42,7 +45,7 @@ public class UIManager : MonoBehaviour {
 
 		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 10, 7, UnitManager.Faction.Enemy);
 		game.unit.CreateUnit (UnitManager.UnitName.SwordsmanUnit, 11, 7, UnitManager.Faction.Enemy);
-		game.unit.CreateUnit (UnitManager.UnitName.ArcherUnit, 10, 8, UnitManager.Faction.Enemy);
+		//game.unit.CreateUnit (UnitManager.UnitName.ArcherUnit, 10, 8, UnitManager.Faction.Enemy);
 		game.unit.CreateUnit (UnitManager.UnitName.ArcherUnit, 11, 8, UnitManager.Faction.Enemy);
 		game.unit.CreateUnit (UnitManager.UnitName.SpearmanUnit, 12, 7, UnitManager.Faction.Enemy);
 	}
@@ -64,43 +67,55 @@ public class UIManager : MonoBehaviour {
 	}
 
 	public void EndTurn(){
-		game.turn.switchTurn ();
+        game.turn.switchTurn (0.0f);
 		game.click.Deselect ();
 		textCurrentTurn.GetComponent<Text> ().text = "Turn: " + game.turn.getCurrentTurn ().ToString ();
 	}
 
 	public void UpdateUnitStatsText(){
-		if (game.click.selectedUnit != null) {
-			Unit unit = game.click.selectedUnit.GetComponent<Unit> ();
-		
-			string words;
+        if (game.click.selectedUnit != null)
+        {
+            panelLeft.SetActive(true);
+            Unit unit = game.click.selectedUnit.GetComponent<Unit>();
 
-			words = "Unit: " + unit.gameObject.name;
-			words.Remove (words.Length - 7 + 6);
+            string words;
 
-			words += "\nHealth: " + unit.getHealth () + "/" + unit.getMaxHealth () + "\n";
-			words += "Unit Size: " + unit.getUnitSize () + "/" + unit.getMaxUnitSize () + "\n";
-			if (unit.getMeleeWeaponType () != Unit.MeleeWeaponType.None) {
-				words += "Melee Weapon: " + unit.getMeleeWeaponType ().ToString () + "\n";
-				words += "Melee Expertise: " + unit.getMeleeExpertise () + "\n";
-				words += "Melee Damage: " + unit.getMeleeAttack () + "\n";
-			}
-			if (unit.getRangedWeaponType () != Unit.RangedWeaponType.None) {
-				words += "Ranged Weapon: " + unit.getRangedWeaponType ().ToString () + "\n";
-				words += "Ranged Expertise: " + unit.getRangedExpertise () + "\n";
-				words += "Ranged Attack: " + unit.getRangedAttack () + "\n";
-			}
-			words += "Defense: " + unit.getDefense () + "\n";
-			textUnitStats.text = words;
-		} else
-			textUnitStats.text = "";
+            words = "Unit: " + unit.gameObject.name;
+            words.Remove(words.Length - 7 + 6);
+
+            words += "\nHealth: " + unit.getHealth() + "/" + unit.getMaxHealth() + "\n";
+            words += "Unit Size: " + unit.getUnitSize() + "/" + unit.getMaxUnitSize() + "\n";
+            if (unit.getMeleeWeaponType() != Unit.MeleeWeaponType.None)
+            {
+                words += "Melee Weapon: " + unit.getMeleeWeaponType().ToString() + "\n";
+                words += "Melee Expertise: " + unit.getMeleeExpertise() + "\n";
+                words += "Melee Damage: " + unit.getMeleeAttack() + "\n";
+            }
+            if (unit.getRangedWeaponType() != Unit.RangedWeaponType.None)
+            {
+                words += "Ranged Weapon: " + unit.getRangedWeaponType().ToString() + "\n";
+                words += "Ranged Expertise: " + unit.getRangedExpertise() + "\n";
+                words += "Ranged Damage: " + unit.getRangedAttack() + "\n";
+            }
+            words += "Defense: " + unit.getDefense() + "\n";
+            words += "Move Speed: " + unit.getSpeed() + "\n";
+            textUnitStats.text = words;
+        }
+        else
+        {
+            textUnitStats.text = "";
+
+            panelLeft.SetActive(false);
+        }
 	}
 
 	public void UpdateHoveredUnitStatsText(){
 		textHoveredUnitStats.text = "";
 		if (game.click.hoveredUnit != null) {
 			if (game.click.hoveredUnit != game.click.selectedUnit) {
-				Unit unit = game.click.hoveredUnit.GetComponent<Unit> ();
+
+                panelRight.SetActive(true);
+                Unit unit = game.click.hoveredUnit.GetComponent<Unit> ();
 
 				string words;
 
@@ -120,10 +135,14 @@ public class UIManager : MonoBehaviour {
 					words += "Ranged Attack: " + unit.getRangedAttack () + "\n";
 				}
 				words += "Defense: " + unit.getDefense () + "\n";
-				textHoveredUnitStats.text = words;
+                words += "Move Speed: " + unit.getSpeed() + "\n";
+                textHoveredUnitStats.text = words;
+                return;
 			}
 		}
-	}
+
+        panelRight.SetActive(false);
+    }
 
 
 	public void updateText(){
