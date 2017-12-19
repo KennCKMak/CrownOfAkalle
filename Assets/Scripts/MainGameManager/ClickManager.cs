@@ -31,7 +31,7 @@ public class ClickManager : MonoBehaviour {
 	[HideInInspector] public UnitManager unitManager;
 	[HideInInspector] public TurnManager turnManager;
     
-    private bool isHologram = false;
+    private bool isHologram;
 
 	// Use this for initialization
 	void Start () {

@@ -80,6 +80,63 @@ public class UnitManager : MonoBehaviour {
 		}
 	}
 
+
+	public IEnumerator CreateUnitS(UnitName unitName, int x, int y, Faction faction){
+		if (mapManager.tileArray [x, y].isOccupied ()) {
+		} else {
+			yield return new WaitForSeconds (0.5f);
+
+			int newID;
+			bool loopRunning = true;
+			while (loopRunning == true) {
+				newID = Random.Range (0, ArraySize);
+				if (unitObjArray [newID] == null) {
+					GameObject newUnit = Instantiate (getAssociatedPrefab (unitName));
+					Unit unitScript = newUnit.GetComponent<Unit> ();
+					//Tile values
+					unitScript.setTileX (x);
+					unitScript.setTileY (y);
+					mapManager.tileArray [x, y].setIsOccupied (true, newUnit);
+					unitScript.faction = faction;
+					unitScript.factionColour = FactionColours [(int)faction];
+					unitScript.factionColourUsed = FactionColoursDark [(int)faction];
+
+					if (unitScript.isMounted ()) {
+						unitScript.horseMaterial = HorseMaterial [0];
+						unitScript.horseMaterialUsed = HorseMaterial [1];
+					}
+
+					unitScript.shaderNormal = shaderStandard;
+					if (faction == Faction.Player) {
+						unitScript.SetOutlineColor (OutlineEffect.OutlineColor.Green);
+						unitScript.RotateUnitFace ("North");
+					} else if (faction == Faction.Enemy) { 
+						unitScript.SetOutlineColor (OutlineEffect.OutlineColor.Red);
+						unitScript.RotateUnitFace ("South");
+					} else
+						unitScript.SetOutlineColor (OutlineEffect.OutlineColor.Black);
+					//setting script values
+					unitScript.game = game;
+					unitScript.map = mapManager;
+					unitScript.combatManager = combatManager;
+					unitScript.unitManager = this;
+
+					unitScript.SetHealthBarPrefab (HealthBarPrefab);
+					//setting ID-Array relation
+					unitObjArray [newID] = newUnit;
+					unitArray [newID] = unitScript;
+					unitScript.setUnitID (newID);
+
+					unitScript.setSimPrefab (getAssociatedSimPrefab (unitName));
+
+					unitScript.SetUpUnit ();
+
+					loopRunning = false;
+				}
+			}
+		}
+	}
+
 	public void CreateUnit(UnitName unitName, int x, int y, Faction faction){
 		if(mapManager.tileArray[x,y].isOccupied())
 			return;
@@ -96,7 +153,6 @@ public class UnitManager : MonoBehaviour {
 				unitScript.setTileX (x);
 				unitScript.setTileY (y);
 				mapManager.tileArray [x, y].setIsOccupied (true, newUnit);
-
 				unitScript.faction = faction;
 				unitScript.factionColour = FactionColours[(int)faction];
                 unitScript.factionColourUsed = FactionColoursDark[(int)faction];

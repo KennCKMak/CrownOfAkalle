@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq; //for array & pathfinding
 using UnityEngine;
+using System.IO;
+using System;
 
 /// <summary>
 /// Map manager.
@@ -15,7 +17,7 @@ using UnityEngine;
 
 public class MapManager : MonoBehaviour {
 
-
+	protected GameManager game;
 	protected ClickManager clickManager;
 
 	//the object itself
@@ -30,13 +32,7 @@ public class MapManager : MonoBehaviour {
 
 	[SerializeField] int mapSizeX = 20;
 	[SerializeField] int mapSizeY = 20;
-	[SerializeField] protected GameObject tileEmpty;
-	[SerializeField] protected GameObject tileGrasslandPrefab;
-    [SerializeField] protected GameObject tileForestPrefab;
-    [SerializeField] protected GameObject tileStonePrefab;
-	[SerializeField] protected GameObject tileMountainPrefab;
-    [SerializeField] protected GameObject tileWaterPrefab;
-    [SerializeField] protected GameObject tileBridgePrefab;
+	[SerializeField] public GameObject[] tilePrefabArray;
 
     protected float heightVariance = 0.00f;
 
@@ -44,42 +40,47 @@ public class MapManager : MonoBehaviour {
 	protected Shader shaderOutline;
 
 	void Start(){
+		game = GetComponent<GameManager> ();
 		clickManager = GetComponent<ClickManager> ();
 
 		shaderStandard = Shader.Find ("Standard");
 		shaderOutline = Shader.Find ("Outline/Black");
 
-		GenerateMapData ();
-		GenerateMapVisuals ();
 
-		GeneratePathfindingGraph ();
 
+		tileGameObjectArray = new GameObject[mapSizeX, mapSizeY];
+		tileArray = new Tile[mapSizeX, mapSizeY];
+		//Populating the array with empty placeholder tiles
+		for (int x = 0; x < mapSizeX; x++) { 
+			for (int y = 0; y < mapSizeY; y++) {
+				tileGameObjectArray [x, y] = Instantiate (tilePrefabArray[(int)Tile.TileType.Empty], Vector3.zero, Quaternion.identity);
+				tileArray [x, y] = tileGameObjectArray [x, y].AddComponent<Tile> ();
+				tileArray [x, y].map = this;
+			}
+		}
+
+		StartCoroutine(GenerateMap());
 		validTiles = new List<Tile> ();
         attackingTiles = new List<Tile>();
 
     }
 
+	IEnumerator GenerateMap(){
+		yield return new WaitForSeconds (0.05f);
+		GenerateDefaultMapData ();
+		//LoadFile ("Map1");
 
-	void GenerateMapData(){
-		tileGameObjectArray = new GameObject[mapSizeX, mapSizeY];
-		tileArray = new Tile[mapSizeX, mapSizeY];
+		GenerateMapVisuals ();
+		GeneratePathfindingGraph ();
+	}
+
+	void GenerateDefaultMapData(){
 
 		int x, y;
-		//Populating the array with empty placeholder tiles
-		for (x = 0; x < mapSizeX; x++) {
-			for (y = 0; y < mapSizeY; y++) {
-				tileGameObjectArray [x, y] = Instantiate (tileEmpty, Vector3.zero, Quaternion.identity);
-				tileArray [x, y] = tileGameObjectArray [x, y].GetComponent<Tile> ();
-                
-			}
-		}
-
-
         //making map
 		for (x = 0; x < mapSizeX; x++) {
 			for (y = 0; y < mapSizeY; y++) {
-				tileArray[x,y].tileType = Tile.TileType.Grassland;
-				tileArray[x,y].setTileVisualPrefab(tileGrasslandPrefab);
+				tileArray [x, y].setTileType (Tile.TileType.Grassland);
 			}
 		}
 
@@ -87,63 +88,92 @@ public class MapManager : MonoBehaviour {
         for (y = 0; y < mapSizeY; y++)
         {
             tileArray[7, y].setTileType(Tile.TileType.Water);
-            tileArray[7, y].setTileVisualPrefab(tileWaterPrefab);
             tileArray[8, y].setTileType(Tile.TileType.Water);
-            tileArray[8, y].setTileVisualPrefab(tileWaterPrefab);
         }
         //bridge
 
         for (x=0; x<12; x++)
         {
             tileArray[x, 9].setTileType(Tile.TileType.Stone);
-            tileArray[x, 9].setTileVisualPrefab(tileStonePrefab);
             tileArray[x, 10].setTileType(Tile.TileType.Stone);
-            tileArray[x, 10].setTileVisualPrefab(tileStonePrefab);
         }
 
         tileArray[8, 10].setTileType(Tile.TileType.Bridge);
-        tileArray[8, 10].setTileVisualPrefab(tileBridgePrefab);
         tileArray[8, 9].setTileType(Tile.TileType.Bridge);
-        tileArray[8, 9].setTileVisualPrefab(tileBridgePrefab);
         tileArray[7, 10].setTileType(Tile.TileType.Bridge);
-        tileArray[7, 10].setTileVisualPrefab(tileBridgePrefab);
         tileArray[7, 9].setTileType(Tile.TileType.Bridge);
-        tileArray[7, 9].setTileVisualPrefab(tileBridgePrefab);
 
         for (x = 12; x < mapSizeX; x++)
         {
             tileArray[x, 10].setTileType(Tile.TileType.Stone);
-            tileArray[x, 10].setTileVisualPrefab(tileStonePrefab);
             tileArray[x, 11].setTileType(Tile.TileType.Stone);
-            tileArray[x, 11].setTileVisualPrefab(tileStonePrefab);
         }
 
         //Make a big forest area
         for (x = 3; x <= 5; x++) {
 			for(y=0; y< 4; y++) {
 				tileArray[x,y].setTileType(Tile.TileType.Forest);
-				tileArray[x,y].setTileVisualPrefab(tileForestPrefab);
 			}
 		}
 
         tileArray[8, 4].setTileType(Tile.TileType.Bridge);
-        tileArray[8, 4].setTileVisualPrefab(tileBridgePrefab);
         tileArray[8, 3].setTileType(Tile.TileType.Bridge);
-        tileArray[8, 3].setTileVisualPrefab(tileBridgePrefab);
         tileArray[7, 4].setTileType(Tile.TileType.Bridge);
-        tileArray[7, 4].setTileVisualPrefab(tileBridgePrefab);
         tileArray[7, 3].setTileType(Tile.TileType.Bridge);
-        tileArray[7, 3].setTileVisualPrefab(tileBridgePrefab);
 
         //Making a mountain range
         for (y = 0; y < mapSizeY; y++) {
 			tileArray [0, y].setTileType(Tile.TileType.Mountain);
-			tileArray [0, y].setTileVisualPrefab(tileMountainPrefab);
 
 			tileArray [mapSizeX-1, y].setTileType(Tile.TileType.Mountain);
-			tileArray [mapSizeX-1, y].setTileVisualPrefab(tileMountainPrefab);
 		}
 	}
+	void LoadFile (string s) {
+		if (!File.Exists ("Assets/Assets/MapData/"+s+".txt")) {
+			Debug.Log ("File " + s + " does not exist.");
+			//if(s != "Default")
+			//LoadFile ("Default");
+			return;
+		}
+
+		StreamReader reader = new StreamReader ("Assets/Assets/MapData/" + s + ".txt");
+		Int32.TryParse (reader.ReadLine (), out mapSizeX);
+		Int32.TryParse (reader.ReadLine (), out mapSizeY);
+
+		string line; int tileNum, unitNum, factionNum;
+		for (int x = 0; x < mapSizeX; x++) {
+			for (int z = 0; z < mapSizeY; z++) {
+				line = reader.ReadLine ();
+				if (!line.Contains (" ")){// 1
+					Int32.TryParse (line, out tileNum);
+					CreateTile (x, z, tileNum);
+				} else { // 1 1 2
+					string t = line.ToCharArray()[0].ToString();
+					string u = line.ToCharArray()[2].ToString();
+					string f = line.ToCharArray()[4].ToString();
+					Int32.TryParse(t, out tileNum);
+					Int32.TryParse(u, out unitNum);
+					Int32.TryParse(f, out factionNum);
+					CreateTileWithUnitS (x, z, tileNum, unitNum, factionNum);
+				}
+			}
+		}
+
+		reader.Close();
+	}
+
+	void CreateTile(int x, int y, int num){
+		tileArray [x, y].setTileType ((Tile.TileType)num);
+	}
+
+	void CreateTileWithUnitS(int x, int y, int tileNum, int unitNum, int factionNum){
+		CreateTile(x, y, tileNum);
+		game.unit.CreateUnit ((UnitManager.UnitName)unitNum, x, y, (UnitManager.Faction)factionNum);
+
+//Debug.Log ("Creating unit at " + x + ", " + y + ": " + ((UnitManager.UnitName)unitNum).ToString () + " for faction " + ((UnitManager.Faction)factionNum).ToString ());
+	}
+
+
 
 
 	void GeneratePathfindingGraph(){
@@ -177,15 +207,17 @@ public class MapManager : MonoBehaviour {
 
 
 	void GenerateMapVisuals() {
+
+
 		for (int x = 0; x < mapSizeX; x++) {
 			for (int y = 0; y < mapSizeX; y++) {
 				GameObject newTile = Instantiate (tileArray[x,y].GetComponent<Tile>().getTileVisualPrefab(), 
                     new Vector3 (0.5f, 0.5f, 0.5f), Quaternion.identity) as GameObject;
-
+				newTile.AddComponent<Tile> ();
 				newTile.GetComponent<Tile>().setTileX(x);
 				newTile.GetComponent<Tile>().setTileY(y);
 				newTile.GetComponent<Tile>().map = this;
-                newTile.GetComponent<Tile>().heightVariance = Random.value * (int)Random.Range(-1, 1) * heightVariance;
+				newTile.GetComponent<Tile> ().heightVariance = 0;//Random.value * (int)Random.Range(-1, 1) * heightVariance;
                 newTile.transform.position = new Vector3(x, 0.5f + newTile.GetComponent<Tile>().heightVariance, y);
 
 

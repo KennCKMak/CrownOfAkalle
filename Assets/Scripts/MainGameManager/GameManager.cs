@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour {
     {
         Time.timeScale = 1.0f;
 
-        Invoke("SpawnUnits", 0.5f);
+        //Invoke("SpawnUnits", 0.5f);
     }
 
     void SpawnUnits()

@@ -62,6 +62,7 @@ public class Tile : MonoBehaviour {
 				}
 			}
 		}
+
 	}
 
 	void OnMouseExit(){
@@ -124,6 +125,7 @@ public class Tile : MonoBehaviour {
 
 	public void setTileType(TileType newType){
 		tileType = newType;
+		setTileVisualPrefab (map.tilePrefabArray [(int)newType]);
 	}
 
 	public void setTileVisualPrefab(GameObject newPrefab){
@@ -171,10 +173,13 @@ public class Tile : MonoBehaviour {
 
 	public void setOutline(bool b)
     {
-        foreach (Outline outline in outlineObjects)
-        {
-            outline.enabled = b;
-        }
+		try{
+	        foreach (Outline outline in outlineObjects)
+	        {
+	            outline.enabled = b;
+	        }
+		}catch{
+		}
         //if (b)
           //  transform.GetChild(0).gameObject.GetComponent<Outline>().enabled = b; //>().material.shader = shaderOutline;
 		//else
