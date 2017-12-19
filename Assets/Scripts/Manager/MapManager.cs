@@ -16,7 +16,6 @@ using UnityEngine;
 public class MapManager : MonoBehaviour {
 
 
-	protected UnitManager unitManager; //spawning
 	protected ClickManager clickManager;
 
 	//the object itself
@@ -46,7 +45,6 @@ public class MapManager : MonoBehaviour {
 
 	void Start(){
 		clickManager = GetComponent<ClickManager> ();
-		unitManager = GetComponent<UnitManager> ();
 
 		shaderStandard = Shader.Find ("Standard");
 		shaderOutline = Shader.Find ("Outline/Black");
