@@ -15,19 +15,19 @@ ALPHA												23 HOURS
 13/12/2017	Wed		15:05-16:30	17:00-19:30	20:50-05:55			13
 14/12/2017	Thu		13:30-14:55							1.5
 
+
+BETA
+19/12/2017	Tue		09:40-10:30	12:50-15:30					3.5
 						Total Hours: 57.83 hours
 
 TODO: 
 A menu that pops up when you arrive at a location (Attack, Wait)
 User Interface improvements
-Outline doesn't work when you package it
-
-Title Screen, Splash Screen -> Game Mode
-Pause Screen
 
 Terrain placement for ramps and stuff?
 MapBuilding - for final build, or maybe not at all
 
+More intuitive controls, help icons to let you know what to do nex
 
 
 30-09-2017 - Sat
@@ -59,7 +59,6 @@ MapBuilding - for final build, or maybe not at all
 - Animations! Idle, walking, charging and attack implemented
 - Added camera scrolling, minor changes to values
 
-
 03-10-2017 - Tue - 08:00
 - Simulacrum/Simulator added, now correctly generates UnitSim (models) and places them into an environment
 - Camera movement polished 
@@ -83,6 +82,7 @@ MapBuilding - for final build, or maybe not at all
 - smart ending - checks if all units are done automatically then switches
 - Faction colours
 - Added spearmen
+
 
 11-12-2017 - Mon - 09:12
 - Health Bars added
@@ -119,3 +119,7 @@ MapBuilding - for final build, or maybe not at all
 - New BGM
 - New lighting
 - Fixed outline for tiles
+
+19-12-2017 - Tue - 0940, 1250
+- Map Builder scene
+- Saving/Loading of Map files
