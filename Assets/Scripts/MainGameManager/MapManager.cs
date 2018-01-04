@@ -128,6 +128,7 @@ public class MapManager : MonoBehaviour {
 			tileArray [mapSizeX-1, y].setTileType(Tile.TileType.Mountain);
 		}
 	}
+
 	void LoadFile (string s) {
 		if (!File.Exists ("Assets/Assets/MapData/"+s+".txt")) {
 			Debug.Log ("File " + s + " does not exist.");

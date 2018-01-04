@@ -1,0 +1,10 @@
+TODO: CoA
+
+User Interface
+End Turn screen
+Controls help
+
+Map Building
+- better ui
+- make sureyou cna't place units on a specific place
+- name your own maps
