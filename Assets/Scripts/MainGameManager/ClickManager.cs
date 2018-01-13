@@ -52,6 +52,8 @@ public class ClickManager : MonoBehaviour {
 		if (selectedUnit) {
 			MoveHologram ();
 		}
+		if (Input.GetKeyDown (KeyCode.F) && selectedUnit)
+			game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
 
 
 		/*if (chosenTile != null) {
@@ -144,6 +146,7 @@ public class ClickManager : MonoBehaviour {
 					if (tile == chosenTile) {
 						mapManager.MoveUnitTowards (chosenTile, selectedUnit);
 						selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
+						game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
 						DeselectUnit ();
 
 						canClick = false;
@@ -162,6 +165,7 @@ public class ClickManager : MonoBehaviour {
 
 								mapManager.MoveUnitTowards (chosenTile, selectedUnit);
 								selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
+								game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
 								DeselectUnit ();
 
 
@@ -174,6 +178,7 @@ public class ClickManager : MonoBehaviour {
 
 								mapManager.MoveUnitTowards (chosenTile, selectedUnit);
 								selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
+								game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
 								DeselectUnit ();
 
 

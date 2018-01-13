@@ -134,6 +134,7 @@ public class MapManager : MonoBehaviour {
 			Debug.Log ("File " + s + " does not exist.");
 			//if(s != "Default")
 			//LoadFile ("Default");
+			GenerateDefaultMapData();
 			return;
 		}
 
@@ -235,8 +236,8 @@ public class MapManager : MonoBehaviour {
 				tileArray [x, y] = newTile.GetComponent<Tile> ();
 
 
-
-				newTile.transform.parent = transform.FindChild ("MapTileGroup").transform;
+				//maptilegroup
+				newTile.transform.parent = transform.GetChild(0).transform;
 
 
 				Destroy(tileGameObjectArray [x, y].gameObject);
@@ -245,7 +246,7 @@ public class MapManager : MonoBehaviour {
 		}
 
 		//moves the transform group cubes somwhere else
-		//transform.FindChild("MapTileGroup").transform.parent = null;	
+		transform.GetChild(0).transform.parent = null;	
 	}
 
 	public Vector3 TileCoordToWorldCoord(int x, int y){
@@ -631,10 +632,12 @@ public class MapManager : MonoBehaviour {
         return lowestTile;
     }
 
-    //public void GetPathToAvailableNodes(Unit )
-
-   
-
+    //Used by Simulation Plane to give it info on what terrain to build
+	public Tile.TileType getTileType(int x, int y){
+		if (x < 0 || y < 0 || x >= 20 || y >= 20) 
+			return Tile.TileType.Empty;
+		return tileArray [x, y].getTileType ();
+	}
     
 
 

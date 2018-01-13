@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour {
 	[HideInInspector] public TurnManager turn;
 	[HideInInspector] public UIManager ui;
     [HideInInspector] public AIManager AI;
+	[HideInInspector] public SimulationPlane simPlane;
     public List<Unit> tempUnitsList = new List<Unit>();
 
 

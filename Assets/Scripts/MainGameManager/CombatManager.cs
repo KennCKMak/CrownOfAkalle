@@ -16,6 +16,7 @@ public class CombatManager : MonoBehaviour {
 	int requiredDefenderDeaths = 0;
 	int initialDefenderTroopCount = 0;
 	int initialAttackerTroopCount = 0;
+	private int distance;
 
 	public float elapsedTime;
 	protected float introSimulationTime = 1.0f;
@@ -28,8 +29,8 @@ public class CombatManager : MonoBehaviour {
 	protected bool skipSimulation;
 
 
-	protected Unit attacker; //this is for animation purposes, the last swing at the end
-	protected Unit defender;
+	[SerializeField] protected Unit attacker; //this is for animation purposes, the last swing at the end
+	[SerializeField] protected Unit defender;
 
 	private Transform SimulationPlane;
 	private float planeX, planeY, planeZ;
@@ -66,15 +67,23 @@ public class CombatManager : MonoBehaviour {
         defender.setOutline(false);
 
 		game.click.canClick = false;
+
+		attacker.getAnimator ().SetTrigger ("Attack");
+		defender.DelayAnimation("TakeDamage", 0.4f);
+
+		distance = dist;
+
+		Invoke ("passInformation", 0.5f);
+	}
+
+	void passInformation(){
 		game.camManager.setCameraState (CameraManager.CameraState.Simulation);
 
-		if (dist == 1) {
-			ResolveCombatMelee (initiator, target);
-		} else if (dist >= 2) {
-			ResolveCombatRanged (initiator, target);
+		if (distance == 1) {
+			ResolveCombatMelee (attacker, defender);
+		} else if (distance >= 2) {
+			ResolveCombatRanged (attacker, defender);
 		}
-
-
 	}
 
 	//sends the appropriate details to the simulation setup
@@ -93,8 +102,8 @@ public class CombatManager : MonoBehaviour {
 		}
 
 		//Debug.Log ("AttackerDeaths: " + attackerDeaths + ". DefenderDeaths: " + Defender);
-		if (!skipSimulation)
-			SetupSimulation (Attacker, Defender, "Melee");
+		if (!skipSimulation) 
+			SetupSimulation ("Melee");
 		else
 			StopSimulation ();
 	}
@@ -117,14 +126,20 @@ public class CombatManager : MonoBehaviour {
 
 		//Debug.Log ("AttackerDeaths: " + attackerDeaths + ". DefenderDeaths: " + Defender);
 		if (!skipSimulation)
-			SetupSimulation (Attacker, Defender, "Ranged");
+			SetupSimulation ("Ranged");
 		else
 			StopSimulation ();
 
 	}
 
 	//sets up all the simulated prefabs - values, locations
-	void SetupSimulation(Unit attacker, Unit defender, string combatType){
+	void SetupSimulation(string combatType){
+		if(attacker.faction == UnitManager.Faction.Enemy)
+			game.simPlane.GenerateTerrain (defender, attacker, distance);
+		else
+			game.simPlane.GenerateTerrain (attacker, defender, distance);
+			
+
 		for (int i = 0; i < initialAttackerTroopCount; i++) {
 			GameObject newUnit = Instantiate (attacker.getSimPrefab()) as GameObject;
 			newUnit.GetComponent<UnitSim> ().setHealth(attacker.getHealthPerUnit ());
@@ -207,7 +222,6 @@ public class CombatManager : MonoBehaviour {
 		Vector3 DefenderPos = new Vector3();
 		switch (combatType) {
 
-
 		case "Melee": 
 			if (attacker.faction == UnitManager.Faction.Player) {
 				AttackerPos = new Vector3 (planeX, planeY - 0.405f, planeZ - 8);
@@ -217,6 +231,7 @@ public class CombatManager : MonoBehaviour {
 				DefenderPos = new Vector3 (planeX, planeY - 0.405f, planeZ - 8);
 			}
 			SpawnUnitsAt (AttackerPos, attacker.faction, DefenderPos, defender.faction);
+
 			break;
 		case "Ranged":
 			if (attacker.faction == UnitManager.Faction.Player) {
@@ -233,17 +248,15 @@ public class CombatManager : MonoBehaviour {
 		}
 
 
-		if (attacker.faction == UnitManager.Faction.Player || attacker.faction == UnitManager.Faction.Ally)
-			game.camManager.CameraSimulation.transform.position = new Vector3(planeX, planeY + 5, AttackerPos.z- 4);
-		else
-			game.camManager.CameraSimulation.transform.position = new Vector3(planeX, planeY + 5, DefenderPos.z-4);
-		game.camManager.CameraSimulation.transform.rotation = Quaternion.identity;
+
 			
 
 		StartSimulation ();
 	}
 
 	void StartSimulation(){
+
+		game.camManager.CameraSimulation.GetComponent<CameraControl> ().FollowTarget (GameObject.Find("CameraHolder").gameObject);
 		elapsedTime = 0.0f;
 		simState = SimulationState.Intro;
 		game.audioManager.SwitchBGMTo (AudioManager.bgmSongVersion.Rage);
@@ -316,12 +329,16 @@ public class CombatManager : MonoBehaviour {
 		game.click.canClick = true;
         game.AI.InvokeSetCanClick(2.0f);
 
+
+		game.camManager.CameraSimulation.GetComponent<CameraControl> ().StopFollow ();
+		game.camManager.CameraSimulation.GetComponent<CameraControl> ().ResetHeight ();
+		game.camManager.CameraSimulation.GetComponent<CameraControl> ().ResetRotation ();
 		game.camManager.setCameraState (CameraManager.CameraState.Strategy);
 
 
-		attacker.getAnimator ().SetTrigger ("Attack");
+		//attacker.getAnimator ().SetTrigger ("Attack");
 		attacker.GetComponent<Unit> ().setState (Unit.State.Done);
-        defender.DelayAnimation("TakeDamage", 0.5f);
+        //defender.DelayAnimation("TakeDamage", 0.5f);
 		//defender.getAnimator ().SetTrigger ("TakeDamage");
 		game.unit.checkEndTurn ();
 
@@ -412,6 +429,10 @@ public class CombatManager : MonoBehaviour {
 				unitList [unitsSpawned].transform.position = 
 					new Vector3 (xStartPos + disHorizontal*y * mirror, start.y, start.z - x*disVertical*mirror);
 				unitsSpawned++;
+				if (faction != UnitManager.Faction.Enemy && x == 0 && y == (int)(numPerLine / 2)) {
+					unitList[unitsSpawned].transform.name = "CameraHolder";
+				}
+					
 			}
 		}
 
