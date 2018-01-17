@@ -15,18 +15,25 @@ ALPHA												23 HOURS
 13/12/2017	Wed		15:05-16:30	17:00-19:30	20:50-05:55			13
 14/12/2017	Thu		13:30-14:55							1.5
 
+
+19/12/2017	Tue		09:00-14:00							5.0
+12/01/2017	Fri		20:15-23:05							3.0
+17/01/2017	Wed		15:00-18:40							3 2/3
 						Total Hours: 57.83 hours
 
 TODO: 
 A menu that pops up when you arrive at a location (Attack, Wait)
 User Interface improvements
-Outline doesn't work when you package it
+End Turn screen
+Controls help
 
 Title Screen, Splash Screen -> Game Mode
 Pause Screen
 
 Terrain placement for ramps and stuff?
-MapBuilding - for final build, or maybe not at all
+MapBuilding - better ui, fluidity
+
+Make the simulation plain have better terrain/flora/details and texture tiling
 
 
 
@@ -119,3 +126,25 @@ MapBuilding - for final build, or maybe not at all
 - New BGM
 - New lighting
 - Fixed outline for tiles
+
+19-12-2017 - Tue - 14:00
+- Map Building
+- File Reader
+- Build map from reader
+- Better map building
+
+12-01-2018 - Fri - 20:15
+- Simulation Area is now modular. Takes in combat and its surroundings. The biggest part
+- Changed Tile highlighting to use old 'transparent' model overlays instead of Outline
+- Camera - Focusing on units, Following units (uses an invis obj to prevent transform.parent sudden rotations)
+- Better camera feelings when switching and controlling
+
+17-01-2018 - Wed - 15:00
+- Plane tiles with more foliage/details
+- UI - Player turns, help, better looks
+- Intro/Main Menu scene assets
+- Fixes for cameraholder
+- Fixes for turn manager - AI working
+- Fixes for AI
+- Focus At for AI units
+- Help Text updated

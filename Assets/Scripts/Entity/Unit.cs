@@ -372,10 +372,12 @@ public class Unit : MonoBehaviour {
 
 		if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (getTileX (), getTileY ())) < 0.01f && currentPath == null) {
 			if (!attacking) {
+				game.camManager.CameraStrategy.GetComponent<CameraControl> ().StopFocus ();
 				setState (State.Done);
 				game.click.canClick = true; //longer way to request for click manager
 				unitManager.checkEndTurn();
 			} else if(attacking) {
+				game.camManager.CameraStrategy.GetComponent<CameraControl> ().StopFocus ();
 				setState(State.Attack);
 
 				transform.LookAt (map.TileCoordToWorldCoord(target.GetComponent<Unit>().getTileX(), target.GetComponent<Unit>().getTileY ()));

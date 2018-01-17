@@ -27,12 +27,9 @@ public class Tile : MonoBehaviour {
 	public Shader shaderNormal;
 	public Shader shaderOutline;
 
-    private Outline[] outlineObjects;
+	private GameObject highlightBlack;
 
-    void Awake()
-    {
-        outlineObjects = GetComponentsInChildren<Outline>();
-    }
+
 
 	void Start(){
 		
@@ -62,6 +59,7 @@ public class Tile : MonoBehaviour {
 				}
 			}
 		}
+
 	}
 
 	void OnMouseExit(){
@@ -124,6 +122,7 @@ public class Tile : MonoBehaviour {
 
 	public void setTileType(TileType newType){
 		tileType = newType;
+		setTileVisualPrefab (map.tilePrefabArray [(int)newType]);
 	}
 
 	public void setTileVisualPrefab(GameObject newPrefab){
@@ -171,14 +170,7 @@ public class Tile : MonoBehaviour {
 
 	public void setOutline(bool b)
     {
-        foreach (Outline outline in outlineObjects)
-        {
-            outline.enabled = b;
-        }
-        //if (b)
-          //  transform.GetChild(0).gameObject.GetComponent<Outline>().enabled = b; //>().material.shader = shaderOutline;
-		//else
-			//transform.GetChild(0).gameObject.GetComponent<Renderer>().material.shader = shaderNormal;
+		transform.FindChild ("HighlightBlack").gameObject.SetActive (b);
     }
 
 

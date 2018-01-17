@@ -93,10 +93,7 @@ public class AudioManager : MonoBehaviour {
 
 	public void PlayBGM(string bgmName, bgmSongVersion songType)
     {
-        if (mute)
-            return;
         BGM music = Array.Find (bgm, bgm => bgm.name == bgmName);
-
 		if (music == null)
 			Debug.LogWarning ("BGM: " + bgmName + " was not found");
 		else {
@@ -111,14 +108,24 @@ public class AudioManager : MonoBehaviour {
 				bgmSource.pitch = music.pitch2;
 			}
 			bgmSource.loop = true;
-			bgmSource.Play ();
+				bgmSource.Play ();
 		}
+
+		if (mute)
+			bgmSource.Stop ();
+	}
+
+	public void PlayBGM(){
+
+		if (mute) {
+			bgmSource.Stop ();
+			return;
+		}
+		bgmSource.Play();
 	}
 
 	public void SwitchBGM()
     {
-        if (mute)
-            return;
         float currentTime = bgmSource.time;
 		float currentLength = bgmSource.clip.length;
 
@@ -143,14 +150,17 @@ public class AudioManager : MonoBehaviour {
 			bgmSource.time = (currentTime / currentLength) * currentBGM.clip1.length;
 
 		}
+		if (mute) {
+			bgmSource.Stop ();
+			return;
+		}
+
 		bgmSource.Stop ();
 		bgmSource.Play ();
 	}
 
 	public void SwitchBGMTo(bgmSongVersion newSongVersion)
     {
-        if (mute)
-            return;
         if (bgmCurrentVersion == newSongVersion)
 			return;
         float currentTime = 0;
@@ -183,6 +193,10 @@ public class AudioManager : MonoBehaviour {
 			bgmSource.time = (currentTime / currentLength) * currentBGM.clip1.length;
 
 		}
+		if (mute) {
+			bgmSource.Stop ();
+			return;
+		}
 		bgmSource.Stop ();
 		bgmSource.Play ();
 	}
@@ -198,5 +212,13 @@ public class AudioManager : MonoBehaviour {
 		} else
 			return s;
 		return null;
+	}
+
+	public void ToggleMuteBGM(){
+		mute = !mute;
+		if (!mute)
+			StopBGM();
+		else
+			PlayBGM();
 	}
 }
