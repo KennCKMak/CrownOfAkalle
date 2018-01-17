@@ -18,6 +18,7 @@ ALPHA												23 HOURS
 
 19/12/2017	Tue		09:00-14:00							5.0
 12/01/2017	Fri		20:15-23:05							3.0
+17/01/2017	Wed		15:00-18:40							3 2/3
 						Total Hours: 57.83 hours
 
 TODO: 
@@ -137,3 +138,13 @@ Make the simulation plain have better terrain/flora/details and texture tiling
 - Changed Tile highlighting to use old 'transparent' model overlays instead of Outline
 - Camera - Focusing on units, Following units (uses an invis obj to prevent transform.parent sudden rotations)
 - Better camera feelings when switching and controlling
+
+17-01-2018 - Wed - 15:00
+- Plane tiles with more foliage/details
+- UI - Player turns, help, better looks
+- Intro/Main Menu scene assets
+- Fixes for cameraholder
+- Fixes for turn manager - AI working
+- Fixes for AI
+- Focus At for AI units
+- Help Text updated
