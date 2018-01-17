@@ -52,8 +52,6 @@ public class ClickManager : MonoBehaviour {
 		if (selectedUnit) {
 			MoveHologram ();
 		}
-		if (Input.GetKeyDown (KeyCode.F) && selectedUnit)
-			game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
 
 
 		/*if (chosenTile != null) {
@@ -88,6 +86,9 @@ public class ClickManager : MonoBehaviour {
 						mapManager.showValidMoves (selectedUnit, tile, selectedUnit.GetComponent<Unit> ().getSpeed (), "Move");
 						validTilesList = mapManager.getValidMovesTilesList (); //retrieve list of tiles
 						HighlightTiles ("Blue"); //of valid tiles list
+
+
+						game.ui.SwitchHelpTextState(UIManager.HelpTextState.ChooseMove);
 
 						break;
 					default:
@@ -136,6 +137,10 @@ public class ClickManager : MonoBehaviour {
 						mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
 						validTilesList = mapManager.getValidMovesTilesList ();
 					}
+
+
+					game.ui.SwitchHelpTextState(UIManager.HelpTextState.ChooseAction);
+
 
 				}
 				break;
@@ -243,6 +248,7 @@ public class ClickManager : MonoBehaviour {
 	public void DeselectUnit(){
 		if (selectedUnit != null) {
 
+
             //If we cancel while selecting an action
             if (selectedUnit.GetComponent<Unit>().getState() == Unit.State.ChooseAction)
             {
@@ -256,7 +262,11 @@ public class ClickManager : MonoBehaviour {
                 HighlightTiles("Blue"); //of valid tiles list
 
                 chosenTile = null;
-
+				if (game.turn.currentTurn == UnitManager.Faction.Player)
+					game.ui.SwitchHelpTextState(UIManager.HelpTextState.ChooseMove);
+				else
+					game.ui.SwitchHelpTextState(UIManager.HelpTextState.None);
+				
                 return;
             }
             else //otherwise just stop everything
@@ -277,7 +287,14 @@ public class ClickManager : MonoBehaviour {
                 mapManager.cleanMap();
                 mapManager.cleanValidMovesTilesList();
 
-                game.ui.updateText();
+				game.ui.updateText();
+
+				if (game.turn.currentTurn == UnitManager.Faction.Player)
+					game.ui.SwitchHelpTextState(UIManager.HelpTextState.ChooseUnit);
+				else 
+					game.ui.SwitchHelpTextState(UIManager.HelpTextState.None);
+				
+
                 return;
             }
 		}

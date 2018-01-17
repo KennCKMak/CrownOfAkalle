@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour {
-
+	public float timeScale = 5.0f;
 	[HideInInspector] public MapManager map;
 	[HideInInspector] public UnitManager unit;
 	[HideInInspector] public CombatManager combat;
@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour {
 	[HideInInspector] public UIManager ui;
     [HideInInspector] public AIManager AI;
 	[HideInInspector] public SimulationPlane simPlane;
-    public List<Unit> tempUnitsList = new List<Unit>();
 
 
 	[HideInInspector] public AudioManager audioManager;
@@ -36,7 +35,7 @@ public class GameManager : MonoBehaviour {
 
     void Start()
     {
-        Time.timeScale = 1.0f;
+        Time.timeScale = 3.0f;
 
         //Invoke("SpawnUnits", 0.5f);
     }
@@ -47,11 +46,12 @@ public class GameManager : MonoBehaviour {
     }
 
     void Update() {
-        
+
+		Time.timeScale = timeScale;
 
         if (Input.GetMouseButtonDown(1))
             click.DeselectUnit();
-
+		/*
         if (Input.GetKeyDown (KeyCode.Alpha2)) 
 			unit.DeleteAllUnits ();
 		
@@ -65,7 +65,8 @@ public class GameManager : MonoBehaviour {
 			unit.RestoreMovement (UnitManager.Faction.Player);
 
         if (Input.GetKeyDown(KeyCode.M))
-            audioManager.SwitchBGM();
+            audioManager.SwitchBGM();*/
+            
     }
 
     public void Pause()

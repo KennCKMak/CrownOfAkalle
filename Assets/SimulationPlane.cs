@@ -8,6 +8,8 @@ public class SimulationPlane : MonoBehaviour {
 	private GameObject[,] plane;
 	private GameObject[,] tilePrefab;
 	private Tile.TileType[,] tileType;
+	//
+	public GameObject[] planeTypePrefab;
 	private GameObject middleBarrier;
 
 
@@ -56,7 +58,7 @@ public class SimulationPlane : MonoBehaviour {
 	public void DisplayTerrain(){
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 4; j++) {
-				GameObject terrain = Instantiate (game.map.tilePrefabArray [(int)tileType [i, j]], plane [i, j].transform) as GameObject;
+				GameObject terrain = Instantiate (planeTypePrefab[(int)tileType [i, j]], plane [i, j].transform) as GameObject;
 				terrain.transform.localScale = new Vector3 (10.0f, 10.0f, 10.0f);
 				terrain.transform.localPosition = new Vector3 (0.0f, -terrain.transform.localScale.y / 2.0f, 0.0f);
 				tilePrefab [i, j] = terrain;
@@ -70,7 +72,7 @@ public class SimulationPlane : MonoBehaviour {
 				if (tileType [i, j] != newType [i, j]) {
 					tileType [i, j] = newType [i, j];
 					Destroy (tilePrefab [i, j]);
-					GameObject terrain = Instantiate (game.map.tilePrefabArray [(int)tileType [i, j]], plane [i, j].transform) as GameObject;
+					GameObject terrain = Instantiate (planeTypePrefab[(int)tileType [i, j]], plane [i, j].transform) as GameObject;
 					terrain.transform.localScale = new Vector3 (10.0f, 10.0f, 10.0f);
 					terrain.transform.localPosition = new Vector3 (0.0f, -terrain.transform.localScale.y / 2.0f, 0.0f);
 					tilePrefab [i, j] = terrain;
@@ -84,7 +86,7 @@ public class SimulationPlane : MonoBehaviour {
 			for (int j = 0; j < 4; j++) {
 				tileType [i, j] = Tile.TileType.Empty;
 				Destroy (tilePrefab [i, j]);
-				GameObject terrain = Instantiate (game.map.tilePrefabArray [(int)tileType [i, j]], plane [i, j].transform) as GameObject;
+				GameObject terrain = Instantiate (planeTypePrefab [(int)tileType [i, j]], plane [i, j].transform) as GameObject;
 				terrain.transform.localScale = new Vector3 (10.0f, 10.0f, 10.0f);
 				terrain.transform.localPosition = new Vector3 (0.0f, -terrain.transform.localScale.y / 2.0f, 0.0f);
 				tilePrefab [i, j] = terrain;

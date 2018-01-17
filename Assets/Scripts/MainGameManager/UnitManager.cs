@@ -152,7 +152,6 @@ public class UnitManager : MonoBehaviour {
 				//Tile values
 				unitScript.setTileX (x);
 				unitScript.setTileY (y);
-				mapManager.tileArray [x, y].setIsOccupied (true, newUnit);
 				unitScript.faction = faction;
 				unitScript.factionColour = FactionColours[(int)faction];
                 unitScript.factionColourUsed = FactionColoursDark[(int)faction];
@@ -187,6 +186,7 @@ public class UnitManager : MonoBehaviour {
 				unitScript.setSimPrefab (getAssociatedSimPrefab (unitName));
 
 				unitScript.SetUpUnit ();
+				mapManager.tileArray [x, y].setIsOccupied (true, newUnit);
 
 				loopRunning = false;
 			}
@@ -268,7 +268,26 @@ public class UnitManager : MonoBehaviour {
     {
         
         bool endTurn = true;
-        Faction currFaction = Faction.Player;// game.turn.getCurrentTurn();
+
+		Faction currFaction = game.turn.getCurrentTurn();
+
+
+		/*switch (currFaction) {
+		case Faction.Player:
+			endTurn = FactionHasUnits (Faction.Enemy);
+			break;
+		case Faction.Enemy:
+			endTurn = FactionHasUnits (Faction.Player);
+			//endTurn = FactionHasUnits (Faction.Ally);
+			break;
+		case Faction.Ally:
+			endTurn = FactionHasUnits (Faction.Neutral);
+			break;
+		case Faction.Neutral:
+			endTurn = FactionHasUnits (Faction.Player);
+			break;
+		}*/
+
         for (int i = 0; i < ArraySize; i++)
         {
             if (unitArray[i] != null)
@@ -280,11 +299,27 @@ public class UnitManager : MonoBehaviour {
                 }
             }
         }
+
+
+
         if (endTurn)
         {
             game.turn.switchTurn();
         }
     }
+
+
+	public bool FactionHasUnits(UnitManager.Faction faction){
+		for (int i = 0; i < ArraySize; i++) {
+			if (unitArray [i] != null) {
+				if (unitArray [i].faction == faction && unitArray [i].getState () != Unit.State.Dead) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 
     public GameObject[] returnUnitObjArray()
     {

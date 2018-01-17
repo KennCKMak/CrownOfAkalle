@@ -20,7 +20,7 @@ public class AIManager : MonoBehaviour {
     public int dist;
 
     public bool active; //is it my turn atm?
-    protected bool canClick;
+    public bool canClick;
 
     [SerializeField] protected List<Unit> myUnits;
     [SerializeField]
@@ -84,19 +84,17 @@ public class AIManager : MonoBehaviour {
         if (myUnits.Count == 0 || enemyUnits.Count == 0)
             AIStop();
 
-
     }
 
     //this is called to go through everything
     private void AIUpdate()
     {
         //if there is still a unit we can use...
-        if (active)
-        {
+		if (active) {
             //active, we have no unit, and we can click to choose a unit
             if (!selectedUnit && canClick)
             {
-                selectedUnit = GetReadyUnit();
+				selectedUnit = GetReadyUnit();
                 if (selectedUnit == null)
                 {
                     if (CheckForReadyUnits())
@@ -108,15 +106,18 @@ public class AIManager : MonoBehaviour {
                         AIStop();
                     }
                     return;
-                }
+				}
+				canClick = false;
 
+				game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
                 map.cleanMap();
                 //We have a unit! Next function will see if we can hit
                 GetUnitActionDetails(selectedUnit.GetComponent<Unit>());
                 if (MainTarget == null)
                 {
-                    selectedUnit.GetComponent<Unit>().setState(Unit.State.Done);
-                    DeselectUnit();
+					selectedUnit.GetComponent<Unit>().setState(Unit.State.Done);
+					DeselectUnit();
+					InvokeSetCanClick (2.0f);
                     return;
                 }
                 myTile = map.tileArray[selectedUnit.GetComponent<Unit>().getTileX(), selectedUnit.GetComponent<Unit>().getTileY()];
@@ -128,12 +129,12 @@ public class AIManager : MonoBehaviour {
                 if (destinationTile == null)
                 {
                     selectedUnit.GetComponent<Unit>().setState(Unit.State.Done);
-                    DeselectUnit();
+					DeselectUnit();
+					InvokeSetCanClick (2.0f);
                     return;
                 }
                 map.MoveUnitTowards(destinationTile, selectedUnit);
 
-                canClick = false;
                 //UNIT IS MOVING
                 selectedUnit.GetComponent<Unit>().setState(Unit.State.Action);
                 
@@ -302,7 +303,7 @@ public class AIManager : MonoBehaviour {
     }
 
     public void DeselectUnit()
-    {
+	{
         selectedUnit = null;
     }
 

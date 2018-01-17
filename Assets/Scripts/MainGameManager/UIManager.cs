@@ -12,13 +12,17 @@ public class UIManager : MonoBehaviour {
     public GameObject panelLeft;
     public GameObject panelRight;
     public GameObject pausePanel;
+	public GameObject helpPanel;
+	public enum HelpTextState { None, ChooseUnit, ChooseMove, ChooseAction };
+	public HelpTextState helpTextState = HelpTextState.ChooseUnit;
+	public bool helpTextEnabled = true;
 
     public GameObject pauseButton;
 
 	public Text textCurrentTurn;
 	public Text textUnitStats;
 	public Text textHoveredUnitStats;
-
+	public Text textHelp;
 	// Use this for initialization
 	void Start () {
 		game = GetComponent<GameManager> ();
@@ -26,13 +30,6 @@ public class UIManager : MonoBehaviour {
 		canvas = transform.FindChild ("Canvas").gameObject;
 		canvas.transform.SetParent(GameObject.Find("CameraStrategy").gameObject.transform);
 
-        panelLeft = canvas.transform.FindChild("PanelLeft").gameObject;
-        panelRight = canvas.transform.FindChild("PanelRight").gameObject;
-        pausePanel = canvas.transform.FindChild("PauseMenu").gameObject;
-        pauseButton = canvas.transform.FindChild("btnPause").gameObject;
-		textCurrentTurn = canvas.transform.FindChild ("textCurrentTurn").gameObject.GetComponent<Text> ();
-		textUnitStats = panelLeft.transform.FindChild ("textUnitStats").gameObject.GetComponent<Text> ();
-		textHoveredUnitStats = panelRight.transform.FindChild ("textHoveredUnitStats").gameObject.GetComponent<Text> ();
 		updateText ();
 
 	}
@@ -41,7 +38,8 @@ public class UIManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
+		if (Input.GetKeyDown (KeyCode.Escape))
+			PauseButton ();
 	}
 
 	public void SpawnUnits(){
@@ -156,9 +154,44 @@ public class UIManager : MonoBehaviour {
 	public void updateText(){
 		UpdateUnitStatsText ();
 		UpdateHoveredUnitStatsText ();
-		textCurrentTurn.text = game.turn.getCurrentTurnString ();
+		UpdateHelpText ();
+		textCurrentTurn.text = "Turn: " + game.turn.getCurrentTurnString ();
 
 	}
+
+	public void SwitchHelpTextState(HelpTextState state){
+		helpTextState = state;
+		UpdateHelpText ();
+	}
+
+	public void UpdateHelpText(){
+		helpPanel.SetActive (helpTextEnabled);
+		string text = "";
+		switch (helpTextState) {
+		case HelpTextState.None:
+			break;
+		case HelpTextState.ChooseUnit:
+			text = "Contol the Camera with WASD & QE \n" +
+			"Zoom in and out using the mouse wheel \n\n" +
+			"Left-click on a blue soldier to select it \n" +
+			"End your turn with the End Turn button";
+
+			Debug.Log ("Switched text");
+			break;
+		case HelpTextState.ChooseMove:
+			text = "Left-Click on a blue tile to move your unit \n\n" + "Right-click to deselect your unit";
+			break;
+		case HelpTextState.ChooseAction:	
+			text = "Left-Click on a red tile to attack that unit \n" +
+				"Left-Click on a blue tile to move the unit without attacking \n\n" +
+				"Right-Click to cancel and choose movement tile";
+			break;
+		default:
+			break;
+		}
+		textHelp.text = text;
+	}
+
 
 	public void setSimulation(){
 		if (game.combat.isSkippingSimulation ()) {
@@ -189,4 +222,13 @@ public class UIManager : MonoBehaviour {
             Debug.LogWarning("Failed to load scene " + s);
         }
     }
+
+	public void ToggleHelp(){
+		helpTextEnabled = !helpTextEnabled;
+		UpdateHelpText ();
+	}
+
+	public void ToggleBGM(){
+		game.audioManager.ToggleMuteBGM ();
+	}
 }

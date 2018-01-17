@@ -33,6 +33,8 @@ public class MapManager : MonoBehaviour {
 	[SerializeField] int mapSizeX = 20;
 	[SerializeField] int mapSizeY = 20;
 	[SerializeField] public GameObject[] tilePrefabArray;
+	List<UnitSpawnData> unitSpawnData;
+
 
     protected float heightVariance = 0.00f;
 
@@ -50,25 +52,20 @@ public class MapManager : MonoBehaviour {
 
 		tileGameObjectArray = new GameObject[mapSizeX, mapSizeY];
 		tileArray = new Tile[mapSizeX, mapSizeY];
-		//Populating the array with empty placeholder tiles
-		for (int x = 0; x < mapSizeX; x++) { 
-			for (int y = 0; y < mapSizeY; y++) {
-				tileGameObjectArray [x, y] = Instantiate (tilePrefabArray[(int)Tile.TileType.Empty], Vector3.zero, Quaternion.identity);
-				tileArray [x, y] = tileGameObjectArray [x, y].AddComponent<Tile> ();
-				tileArray [x, y].map = this;
-			}
-		}
-
-		StartCoroutine(GenerateMap());
 		validTiles = new List<Tile> ();
-        attackingTiles = new List<Tile>();
+		attackingTiles = new List<Tile>();	
+		unitSpawnData = new List<UnitSpawnData> ();
+
+		GenerateMap ();
+		CreateUnits ();
 
     }
 
-	IEnumerator GenerateMap(){
-		yield return new WaitForSeconds (0.05f);
-		GenerateDefaultMapData ();
+	void GenerateMap(){
+		//GenerateDefaultMapData ();
 		//LoadFile ("Map1");
+		LoadFile("Default");
+
 
 		GenerateMapVisuals ();
 		GeneratePathfindingGraph ();
@@ -132,8 +129,8 @@ public class MapManager : MonoBehaviour {
 	void LoadFile (string s) {
 		if (!File.Exists ("Assets/Assets/MapData/"+s+".txt")) {
 			Debug.Log ("File " + s + " does not exist.");
-			//if(s != "Default")
-			//LoadFile ("Default");
+			if(s != "Default")
+				LoadFile ("Default");
 			GenerateDefaultMapData();
 			return;
 		}
@@ -141,6 +138,14 @@ public class MapManager : MonoBehaviour {
 		StreamReader reader = new StreamReader ("Assets/Assets/MapData/" + s + ".txt");
 		Int32.TryParse (reader.ReadLine (), out mapSizeX);
 		Int32.TryParse (reader.ReadLine (), out mapSizeY);
+
+		for (int x = 0; x < mapSizeX; x++) { 
+			for (int y = 0; y < mapSizeY; y++) {
+				tileGameObjectArray [x, y] = Instantiate (tilePrefabArray[(int)Tile.TileType.Empty], Vector3.zero, Quaternion.identity);
+				tileArray [x, y] = tileGameObjectArray [x, y].AddComponent<Tile> ();
+				tileArray [x, y].map = this;
+			}
+		}
 
 		string line; int tileNum, unitNum, factionNum;
 		for (int x = 0; x < mapSizeX; x++) {
@@ -156,11 +161,10 @@ public class MapManager : MonoBehaviour {
 					Int32.TryParse(t, out tileNum);
 					Int32.TryParse(u, out unitNum);
 					Int32.TryParse(f, out factionNum);
-					CreateTileWithUnitS (x, z, tileNum, unitNum, factionNum);
+					CreateTileWithUnit (x, z, tileNum, unitNum, factionNum);
 				}
 			}
 		}
-
 		reader.Close();
 	}
 
@@ -168,13 +172,20 @@ public class MapManager : MonoBehaviour {
 		tileArray [x, y].setTileType ((Tile.TileType)num);
 	}
 
-	void CreateTileWithUnitS(int x, int y, int tileNum, int unitNum, int factionNum){
+	void CreateTileWithUnit(int x, int y, int tileNum, int unitNum, int factionNum){
 		CreateTile(x, y, tileNum);
-		game.unit.CreateUnit ((UnitManager.UnitName)unitNum, x, y, (UnitManager.Faction)factionNum);
-
-//Debug.Log ("Creating unit at " + x + ", " + y + ": " + ((UnitManager.UnitName)unitNum).ToString () + " for faction " + ((UnitManager.Faction)factionNum).ToString ());
+		unitSpawnData.Add(new UnitSpawnData(x, y, unitNum, factionNum));
 	}
 
+	void CreateUnits(){
+		for (int i = 0; i < unitSpawnData.Count; i++) {
+			game.unit.CreateUnit (
+				(UnitManager.UnitName)(unitSpawnData[i].unitNum), 
+				unitSpawnData[i].x, 
+				unitSpawnData[i].y, 
+				(UnitManager.Faction)(unitSpawnData[i].factionNum));
+		}
+	}
 
 
 

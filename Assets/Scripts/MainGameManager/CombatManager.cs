@@ -7,7 +7,6 @@ public class CombatManager : MonoBehaviour {
 
 	public bool simulationRunning;
 	protected GameManager game;
-
 	List<GameObject> AttackingUnits;
 	List<GameObject> DefendingUnits;
 	int attackerDeaths = 0;
@@ -28,6 +27,7 @@ public class CombatManager : MonoBehaviour {
 
 	protected bool skipSimulation;
 
+	protected GameObject camHolder;
 
 	[SerializeField] protected Unit attacker; //this is for animation purposes, the last swing at the end
 	[SerializeField] protected Unit defender;
@@ -255,8 +255,16 @@ public class CombatManager : MonoBehaviour {
 	}
 
 	void StartSimulation(){
-
-		game.camManager.CameraSimulation.GetComponent<CameraControl> ().FollowTarget (GameObject.Find("CameraHolder").gameObject);
+		if (camHolder == null) {
+			try {
+				camHolder = GameObject.Find ("CameraHolder").gameObject;
+			} catch {
+				if (!camHolder) {
+					camHolder = game.simPlane.gameObject;
+				}
+			}
+		}
+		game.camManager.CameraSimulation.GetComponent<CameraControl> ().FollowTarget (camHolder);
 		elapsedTime = 0.0f;
 		simState = SimulationState.Intro;
 		game.audioManager.SwitchBGMTo (AudioManager.bgmSongVersion.Rage);
@@ -327,7 +335,7 @@ public class CombatManager : MonoBehaviour {
 		game.unit.ScanForDeadUnits ();
 
 		game.click.canClick = true;
-        game.AI.InvokeSetCanClick(2.0f);
+		game.AI.InvokeSetCanClick(2.0f);
 
 
 		game.camManager.CameraSimulation.GetComponent<CameraControl> ().StopFollow ();
@@ -340,7 +348,7 @@ public class CombatManager : MonoBehaviour {
 		attacker.GetComponent<Unit> ().setState (Unit.State.Done);
         //defender.DelayAnimation("TakeDamage", 0.5f);
 		//defender.getAnimator ().SetTrigger ("TakeDamage");
-		game.unit.checkEndTurn ();
+		//game.unit.checkEndTurn ();
 
 
 		game.audioManager.SwitchBGMTo (AudioManager.bgmSongVersion.Stream);
@@ -370,7 +378,7 @@ public class CombatManager : MonoBehaviour {
 			Destroy (a.gameObject);
 		foreach (GameObject d in DefendingUnits)
 			Destroy (d.gameObject);
-
+		camHolder = null;
 
 		AttackingUnits.Clear();
 		DefendingUnits.Clear ();
@@ -429,8 +437,8 @@ public class CombatManager : MonoBehaviour {
 				unitList [unitsSpawned].transform.position = 
 					new Vector3 (xStartPos + disHorizontal*y * mirror, start.y, start.z - x*disVertical*mirror);
 				unitsSpawned++;
-				if (faction != UnitManager.Faction.Enemy && x == 0 && y == (int)(numPerLine / 2)) {
-					unitList[unitsSpawned].transform.name = "CameraHolder";
+				if (faction != UnitManager.Faction.Enemy && x == 0 && y == 0) {
+					camHolder = unitList [unitsSpawned].gameObject;
 				}
 					
 			}

@@ -15,6 +15,8 @@ ALPHA												23 HOURS
 13/12/2017	Wed		15:05-16:30	17:00-19:30	20:50-05:55			13
 14/12/2017	Thu		13:30-14:55							1.5
 
+
+19/12/2017	Tue		09:00-14:00							5.0
 12/01/2017	Fri		20:15-23:05							3.0
 						Total Hours: 57.83 hours
 
@@ -123,6 +125,12 @@ Make the simulation plain have better terrain/flora/details and texture tiling
 - New BGM
 - New lighting
 - Fixed outline for tiles
+
+19-12-2017 - Tue - 14:00
+- Map Building
+- File Reader
+- Build map from reader
+- Better map building
 
 12-01-2018 - Fri - 20:15
 - Simulation Area is now modular. Takes in combat and its surroundings. The biggest part
