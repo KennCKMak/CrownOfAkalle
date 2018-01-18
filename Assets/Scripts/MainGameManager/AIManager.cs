@@ -21,6 +21,7 @@ public class AIManager : MonoBehaviour {
 
     public bool active; //is it my turn atm?
     public bool canClick;
+	public bool AIStopFlagged;
 
     [SerializeField] protected List<Unit> myUnits;
     [SerializeField]
@@ -33,6 +34,7 @@ public class AIManager : MonoBehaviour {
        
         active = false;
         canClick = false;
+		AIStopFlagged = false;
 
         game = GetComponent<GameManager>();
         map = game.map;
@@ -80,7 +82,7 @@ public class AIManager : MonoBehaviour {
 
         active = true;
         canClick = true;
-
+		AIStopFlagged = false;
         if (myUnits.Count == 0 || enemyUnits.Count == 0)
             AIStop();
 
@@ -93,6 +95,8 @@ public class AIManager : MonoBehaviour {
 		if (active) {
 			if (GameManager.paused)
 				return;
+			if (AIStopFlagged)
+				AIStop ();
             //active, we have no unit, and we can click to choose a unit
             if (!selectedUnit && canClick)
             {
@@ -105,10 +109,11 @@ public class AIManager : MonoBehaviour {
                     }
                     else
                     {
-                        AIStop();
+						AIStopFlagged = true;
+						return;
                     }
-                    return;
 				}
+
 				canClick = false;
 
 				game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
@@ -191,6 +196,7 @@ public class AIManager : MonoBehaviour {
     {
         if (active)
         {
+//			Debug.Log ("Stopping");
             active = false;
             canClick = false;
             myUnits.Clear();

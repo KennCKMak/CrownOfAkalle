@@ -111,6 +111,7 @@ public class ClickManager : MonoBehaviour {
 				if(validTilesList.Contains(tile)){
 					chosenTile = tile;
 
+					AudioManager.instance.PlaySFX ("TileSelect");
 					RemoveHighlight ();
 					mapManager.cleanValidMovesTilesList (); //removes old map list
 					mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
@@ -123,7 +124,7 @@ public class ClickManager : MonoBehaviour {
 					selectedUnit.GetComponent<Unit>().setState(Unit.State.ChooseAction);
 
 					//If you are ranged only, remove the closest squares to you...
-					if (selectedUnit.GetComponent<Unit> ().isRanged () && !selectedUnit.GetComponent<Unit> ().isMelee ()) {
+					/*if (selectedUnit.GetComponent<Unit> ().isRanged () && !selectedUnit.GetComponent<Unit> ().isMelee ()) {
 						mapManager.cleanValidMovesTilesList (); //removes old map manager
 						mapManager.showValidMoves (selectedUnit, chosenTile, 1, "Attack");
 						validTilesList = mapManager.getValidMovesTilesList ();
@@ -136,7 +137,7 @@ public class ClickManager : MonoBehaviour {
 						mapManager.cleanValidMovesTilesList ();
 						mapManager.showValidMoves (selectedUnit, chosenTile, selectedUnit.GetComponent<Unit> ().getWeaponRange (), "Attack");
 						validTilesList = mapManager.getValidMovesTilesList ();
-					}
+					}*/
 
 
 					game.ui.SwitchHelpTextState(UIManager.HelpTextState.ChooseAction);
@@ -154,12 +155,14 @@ public class ClickManager : MonoBehaviour {
 						game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
 						DeselectUnit ();
 
+						AudioManager.instance.PlaySFX ("TileSelect");
 						canClick = false;
 
 					} else if (tile.isOccupied () && tile.getOccupyingUnit() != selectedUnit) {
 						//check if we clicked on ally or friendly...
 						if (tile.getOccupyingUnit ().GetComponent<Unit> ().faction != selectedUnit.GetComponent<Unit>().faction) {
 
+							AudioManager.instance.PlaySFX ("TileSelect");
 							//Calculate weapon range
 							int dist = mapManager.GetTileDistance (tile, chosenTile);
 							if (dist == 1 && selectedUnit.GetComponent<Unit> ().isMelee()) {
@@ -175,6 +178,19 @@ public class ClickManager : MonoBehaviour {
 
 
 								canClick = false;
+							} else if (dist == 1 && selectedUnit.GetComponent<Unit> ().isRanged()) {
+									selectedUnit.GetComponent<Unit> ().setIsAttacking(true);
+									selectedUnit.GetComponent<Unit> ().setTarget (tile.getOccupyingUnit ().GetComponent<Unit>());
+									selectedUnit.GetComponent<Unit> ().setDist (dist);
+
+
+									mapManager.MoveUnitTowards (chosenTile, selectedUnit);
+									selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
+									game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
+									DeselectUnit ();
+
+
+									canClick = false;
 							} else if (dist >= 2 && selectedUnit.GetComponent<Unit> ().isRanged() && selectedUnit.GetComponent<Unit>().getWeaponRange() >= dist) {
 								selectedUnit.GetComponent<Unit> ().setIsAttacking(true);
 								selectedUnit.GetComponent<Unit> ().setTarget (tile.getOccupyingUnit ().GetComponent<Unit>());
@@ -185,7 +201,6 @@ public class ClickManager : MonoBehaviour {
 								selectedUnit.GetComponent<Unit> ().setState (Unit.State.Action);
 								game.camManager.CameraStrategy.GetComponent<CameraControl> ().FocusAt (selectedUnit);
 								DeselectUnit ();
-
 
 								canClick = false;
 
@@ -233,6 +248,8 @@ public class ClickManager : MonoBehaviour {
 		StartHologram ();
 		game.ui.UpdateUnitStatsText();
 		game.ui.UpdateHoveredUnitStatsText ();
+
+		AudioManager.instance.PlaySFX ("UnitSelect");
 	}
 
 	public void SelectTile(Tile tile){
@@ -293,7 +310,7 @@ public class ClickManager : MonoBehaviour {
 					game.ui.SwitchHelpTextState(UIManager.HelpTextState.ChooseUnit);
 				else 
 					game.ui.SwitchHelpTextState(UIManager.HelpTextState.None);
-				
+				AudioManager.instance.PlaySFX ("UnitDeselect");
 
                 return;
             }

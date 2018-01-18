@@ -23,7 +23,8 @@ public class UnitManager : MonoBehaviour {
 		SwordsmanUnit,
 		ArcherUnit,
 		KnightUnit,
-		SpearmanUnit
+		SpearmanUnit,
+		GodArcherUnit
 	}
 
 	public Material[] FactionColours;
@@ -266,38 +267,19 @@ public class UnitManager : MonoBehaviour {
 		ScanForDeadUnits ();
 	}
 
-    public void checkEndTurn()
+    public void checkPlayerEndTurn()
     {
         
         bool endTurn = true;
 
-		Faction currFaction = game.turn.getCurrentTurn();
-
-
-		/*switch (currFaction) {
-		case Faction.Player:
-			endTurn = FactionHasUnits (Faction.Enemy);
-			break;
-		case Faction.Enemy:
-			endTurn = FactionHasUnits (Faction.Player);
-			//endTurn = FactionHasUnits (Faction.Ally);
-			break;
-		case Faction.Ally:
-			endTurn = FactionHasUnits (Faction.Neutral);
-			break;
-		case Faction.Neutral:
-			endTurn = FactionHasUnits (Faction.Player);
-			break;
-		}*/
 
         for (int i = 0; i < ArraySize; i++)
         {
             if (unitArray[i] != null)
             {
-                if (unitArray[i].faction == currFaction && unitArray[i].getState() != Unit.State.Done)
+                if (unitArray[i].faction == Faction.Player && unitArray[i].getState() != Unit.State.Done)
                 {
                     endTurn = false;
-                    return;
                 }
             }
         }

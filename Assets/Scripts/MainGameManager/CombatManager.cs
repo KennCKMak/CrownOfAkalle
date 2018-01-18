@@ -63,6 +63,8 @@ public class CombatManager : MonoBehaviour {
 		attacker = initiator;
 		defender = target;
 
+		//Debug.Log ("Starting combat between " + initiator.transform.name + " and " + target.transform.name);
+
         attacker.setOutline(false);
         defender.setOutline(false);
 
@@ -93,13 +95,38 @@ public class CombatManager : MonoBehaviour {
 		initialAttackerTroopCount = Attacker.getUnitSize();
 		initialDefenderTroopCount = Defender.getUnitSize();
 
-		Defender.takeDamage (CalculateDamage (Attacker, Defender, "Melee"));
-		requiredDefenderDeaths = initialDefenderTroopCount - Defender.getUnitSize ();
+		//whoever is ranged attacks first. 
+		if (Attacker.isRanged ()) {
+			//Attacker deals some ranged damage, slightly nerfed
+			Defender.takeDamage (CalculateDamage (Attacker, Defender, "Melee") * 8 /10 ); //80% dmg if you initiate in melee distnace
+			requiredDefenderDeaths = initialDefenderTroopCount - Defender.getUnitSize ();
+			Attacker.takeDamage (CalculateDamage (Defender, Attacker, "Melee"));//halve ranged fire if in melee distance
+			requiredAttackerDeaths = initialAttackerTroopCount - Attacker.getUnitSize ();
 
-		if (Defender.isMelee ()) {
+
+		} else if (Defender.isRanged ()) {
+			//Defender deals some ranged damage when attacking
+			Attacker.takeDamage (CalculateDamage (Defender, Attacker, "Melee") /2);  //50% dmg dealt to enemy if they charge you
+			requiredAttackerDeaths = initialAttackerTroopCount - Attacker.getUnitSize ();
+			Defender.takeDamage (CalculateDamage (Attacker, Defender, "Melee"));
+			requiredDefenderDeaths = initialDefenderTroopCount - Defender.getUnitSize ();
+
+
+
+		} else {
+
+			Defender.takeDamage (CalculateDamage (Attacker, Defender, "Melee"));
+			requiredDefenderDeaths = initialDefenderTroopCount - Defender.getUnitSize ();
+
 			Attacker.takeDamage (CalculateDamage (Defender, Attacker, "Melee"));
 			requiredAttackerDeaths = initialAttackerTroopCount - Attacker.getUnitSize ();
+
 		}
+		/*if (Defender.isMelee ()) {
+			Attacker.takeDamage (CalculateDamage (Defender, Attacker, "Melee"));
+			requiredAttackerDeaths = initialAttackerTroopCount - Attacker.getUnitSize ();
+		}*/
+
 
 		//Debug.Log ("AttackerDeaths: " + attackerDeaths + ". DefenderDeaths: " + Defender);
 		if (!skipSimulation) 
@@ -141,7 +168,7 @@ public class CombatManager : MonoBehaviour {
 			
 
 		for (int i = 0; i < initialAttackerTroopCount; i++) {
-			GameObject newUnit = Instantiate (attacker.getSimPrefab()) as GameObject;
+			GameObject newUnit = Instantiate (attacker.getSimPrefab()) as GameObject;	
 			newUnit.GetComponent<UnitSim> ().setHealth(attacker.getHealthPerUnit ());
 			newUnit.GetComponent<UnitSim> ().setUnitSide (UnitSim.UnitSide.Attacker);
 			newUnit.GetComponent<UnitSim> ().combatManager = this;
@@ -152,10 +179,15 @@ public class CombatManager : MonoBehaviour {
 			newUnit.GetComponent<UnitSim> ().setIsMounted (attacker.isMounted ());
 
 			if (combatType == "Melee") {
-				newUnit.GetComponent<UnitSim> ().setDamage(attacker.getMeleeAttack ()/2);
-				newUnit.GetComponent<UnitSim> ().setRange (1);
-				newUnit.GetComponent<UnitSim> ().setMeleeWeaponType (attacker.getMeleeWeaponType ());
-
+				if (attacker.isMelee ()) {
+					newUnit.GetComponent<UnitSim> ().setDamage (attacker.getMeleeAttack () / 2);
+					newUnit.GetComponent<UnitSim> ().setRange (1);
+					newUnit.GetComponent<UnitSim> ().setMeleeWeaponType (attacker.getMeleeWeaponType ());
+				} else if (attacker.isRanged ()) {
+					newUnit.GetComponent<UnitSim> ().setDamage (attacker.getRangedAttack () / 2);
+					newUnit.GetComponent<UnitSim> ().setRange (attacker.getWeaponRange());
+					newUnit.GetComponent<UnitSim> ().setRangedWeaponType (attacker.getRangedWeaponType ());
+				}
 			} else if (combatType == "Ranged") {
 				newUnit.GetComponent<UnitSim> ().setDamage(attacker.getRangedAttack ()/2);
 				newUnit.GetComponent<UnitSim> ().setRange(attacker.getWeaponRange());
@@ -190,7 +222,12 @@ public class CombatManager : MonoBehaviour {
 				newUnit.GetComponent<UnitSim> ().setRange(1);
 				newUnit.GetComponent<UnitSim> ().setMeleeWeaponType (defender.getMeleeWeaponType ());
 				newUnit.GetComponent<UnitSim> ().canAttack = true;
-			} else if (combatType == "Ranged" && defender.isRanged ()) {
+			} else if (combatType == "Melee" && defender.isRanged ()) {
+				newUnit.GetComponent<UnitSim> ().setDamage(defender.getRangedAttack ()/2);
+				newUnit.GetComponent<UnitSim> ().setRange(defender.getWeaponRange());
+				newUnit.GetComponent<UnitSim> ().setRangedWeaponType (defender.getRangedWeaponType ());
+				newUnit.GetComponent<UnitSim> ().canAttack = true;
+			} else if(combatType == "Ranged" && defender.isRanged ()) {
 				if (defender.getWeaponRange () >= attacker.getWeaponRange ()) {
 					newUnit.GetComponent<UnitSim> ().setDamage(defender.getRangedAttack ()/2);
 					newUnit.GetComponent<UnitSim> ().setRange(defender.getWeaponRange());
@@ -255,6 +292,7 @@ public class CombatManager : MonoBehaviour {
 	}
 
 	void StartSimulation(){
+
 		if (camHolder == null) {
 			try {
 				camHolder = GameObject.Find ("CameraHolder").gameObject;
@@ -271,7 +309,8 @@ public class CombatManager : MonoBehaviour {
 
 		elapsedTime = 0.0f;
 		simState = SimulationState.Intro;
-		game.audioManager.SwitchBGMTo (AudioManager.bgmSongVersion.Rage);
+		AudioManager.instance.SwitchBGMTo (AudioManager.bgmSongVersion.Rage);
+		AudioManager.instance.PlaySFX ("StartCombatSFX");
 		simulationRunning = true;
 	}
 
@@ -339,8 +378,9 @@ public class CombatManager : MonoBehaviour {
 		game.unit.ScanForDeadUnits ();
 
 		game.click.canClick = true;
-		game.AI.InvokeSetCanClick(2.0f);
-
+		if (game.turn.getCurrentTurn () != UnitManager.Faction.Player && !game.AI.AIStopFlagged) {
+			game.AI.InvokeSetCanClick (2.0f);
+		}
 
 		game.camManager.CameraSimulation.GetComponent<CameraControl> ().StopFollow ();
 		game.camManager.CameraSimulation.GetComponent<CameraControl> ().ResetHeight ();
@@ -352,10 +392,14 @@ public class CombatManager : MonoBehaviour {
 		attacker.GetComponent<Unit> ().setState (Unit.State.Done);
         //defender.DelayAnimation("TakeDamage", 0.5f);
 		//defender.getAnimator ().SetTrigger ("TakeDamage");
-		//game.unit.checkEndTurn ();
+		if(game.turn.getCurrentTurn() == UnitManager.Faction.Player)
+			game.unit.checkPlayerEndTurn ();
 
 
 		game.audioManager.SwitchBGMTo (AudioManager.bgmSongVersion.Stream);
+		if (!skipSimulation) {
+			AudioManager.instance.PlaySFX ("EndCombatSFX");
+		}
 
 		ResetSimulation ();
 
@@ -477,14 +521,17 @@ public class CombatManager : MonoBehaviour {
 		}
 	}
 
-	public int CalculateDamage(Unit Attacker, Unit Defender, string combatType){
+	public int CalculateDamage(Unit AttackingUnit, Unit DefendingUnit, string combatType){
 		int totalPool = 0; //expertise added together in melee
-
-		if (combatType == "Melee") //for melee, roll against each other
-			totalPool = Defender.getMeleeExpertise () + Attacker.getMeleeExpertise ();
-		else if (combatType == "Ranged") { //for ranged, roll against 100 for chance
-			totalPool = Attacker.getRangedExpertise ();
-			if (Defender.isShielded ()) {
+		if (combatType == "Melee") {//for melee, roll against each other
+			if (AttackingUnit.isMelee ()) {
+				totalPool = DefendingUnit.getMeleeExpertise () + AttackingUnit.getMeleeExpertise ();
+			}else if (AttackingUnit.isRanged ()) {
+				totalPool = DefendingUnit.getMeleeExpertise () + AttackingUnit.getRangedExpertise () / 2;
+			}
+		} else if (combatType == "Ranged") { //for ranged, roll against 100 for chance
+			totalPool = AttackingUnit.getRangedExpertise ();
+			if (DefendingUnit.isShielded ()) {
 				totalPool -= 25; //-25% chance to hit if shielded
 			}
 		} else {
@@ -496,45 +543,49 @@ public class CombatManager : MonoBehaviour {
 		int totalDamage = 0; //damage done this roll
 		int rand;
 
-		for (int i = 0; i < Attacker.getUnitSize (); i++) {
-
+		for (int i = 0; i < AttackingUnit.getUnitSize (); i++) {
+			
 			if (combatType == "Melee") {
 				rand = Random.Range (0, totalPool + 1); //choose random number in the pool
 				//total pool looks like |___DEFENSE___|___ATTACK___|
-				if (rand > Defender.getMeleeExpertise ()) { //if random number overcomes them
+				if (rand > DefendingUnit.getMeleeExpertise ()) { //if random number overcomes them
 					successfulHits++;
 				}
-				totalDamage = successfulHits * Mathf.Max(Attacker.getMeleeAttack () - Defender.getDefense (), 1);
+				if(AttackingUnit.isMelee())
+					totalDamage = successfulHits * Mathf.Max(AttackingUnit.getMeleeAttack () - DefendingUnit.getDefense (), 1);
+				else if(AttackingUnit.isRanged())
+					totalDamage = successfulHits * Mathf.Max(AttackingUnit.getRangedAttack () - DefendingUnit.getDefense (), 1);
 			}
 
 			else if (combatType == "Ranged") {
 				rand = Random.Range (0, 100 + 1); //rolls against 100 chance
-				if (rand < Attacker.getRangedExpertise ()) {
+				if (rand < AttackingUnit.getRangedExpertise ()) {
 					successfulHits++;
 				}
-				totalDamage = successfulHits * Mathf.Max(Attacker.getRangedAttack () - Defender.getDefense (), 1);
+				totalDamage = successfulHits * Mathf.Max(AttackingUnit.getRangedAttack () - DefendingUnit.getDefense (), 1);
 			}
 
 		}
 
 		//modifiers
-		if (Attacker.isMounted () && Defender.getMeleeWeaponType () != Unit.MeleeWeaponType.Spear)
+		if (AttackingUnit.isMounted () && DefendingUnit.getMeleeWeaponType () != Unit.MeleeWeaponType.Spear)
 			totalDamage *= 2;
-		if (Attacker.isMounted () && Defender.getMeleeWeaponType () == Unit.MeleeWeaponType.Spear)
-			totalDamage /= 4;
+		if (AttackingUnit.isMounted () && DefendingUnit.getMeleeWeaponType () == Unit.MeleeWeaponType.Spear)
+			totalDamage /= 3;
 
-		if (Defender.isMounted () && Attacker.getMeleeWeaponType () == Unit.MeleeWeaponType.Spear)
+		if (DefendingUnit.isMounted () && AttackingUnit.getMeleeWeaponType () == Unit.MeleeWeaponType.Spear)
 			totalDamage *= 3;
-		if (Defender.isArmoured ()) {
-			if (Attacker.getMeleeWeaponType () == Unit.MeleeWeaponType.Mace || Attacker.getRangedWeaponType () == Unit.RangedWeaponType.Crossbow)
+		if (DefendingUnit.isArmoured ()) {
+			if (AttackingUnit.getMeleeWeaponType () == Unit.MeleeWeaponType.Mace || AttackingUnit.getRangedWeaponType () == Unit.RangedWeaponType.Crossbow)
 				totalDamage *= 2;
 		}
 
 
 		//Debug.Log ("Successful Hits: " + successfulHits + ". Damage = " + totalDamage);
 		return totalDamage;
-
 	}
+
+
 
 	public void setSkippingSimulation(bool b){
 		skipSimulation = b;

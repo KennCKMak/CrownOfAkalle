@@ -179,7 +179,6 @@ public class MapManager : MonoBehaviour {
 
 	void CreateUnits(){
 		for (int i = 0; i < unitSpawnData.Count; i++) {
-			Debug.Log ("Creating unit 1");
 			game.unit.CreateUnit (
 				(UnitManager.UnitName)(unitSpawnData[i].unitNum), 
 				unitSpawnData[i].x, 

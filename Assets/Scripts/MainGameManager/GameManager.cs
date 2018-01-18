@@ -1,9 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour {
-	public float timeScale = 5.0f;
+	public float timeScale = 1.0f;
+	private float oldTimeScale = 0.0f;
 	[HideInInspector] public MapManager map;
 	[HideInInspector] public UnitManager unit;
 	[HideInInspector] public CombatManager combat;
@@ -18,7 +20,7 @@ public class GameManager : MonoBehaviour {
 	[HideInInspector] public AudioManager audioManager;
 
     public static bool paused;
-
+	public static bool running = true;
 
 	// Use this for initialization
 	void Awake () {
@@ -30,22 +32,24 @@ public class GameManager : MonoBehaviour {
 		turn = GetComponent<TurnManager> ();
 		ui = GetComponent<UIManager> ();
         AI = GetComponent<AIManager>();
+		if(!audioManager)
+			audioManager = AudioManager.instance;
 	}
 
     void Start()
     {
-        Time.timeScale = 1.0f;
+		running = true;
+       // Time.timeScale = 20.0f;
 
         //Invoke("SpawnUnits", 0.5f);
     }
 
-    void SpawnUnits()
-    {
-        ui.SpawnUnits();
-    }
 
     void Update() {
-
+		if (oldTimeScale != timeScale) {
+			oldTimeScale = timeScale;
+			Time.timeScale = timeScale;
+		}
 		//Time.timeScale = timeScale;
 
         if (Input.GetMouseButtonDown(1))
@@ -65,6 +69,7 @@ public class GameManager : MonoBehaviour {
 
         if (Input.GetKeyDown(KeyCode.M))
             audioManager.SwitchBGM();*/
+
             
     }
 
@@ -92,4 +97,8 @@ public class GameManager : MonoBehaviour {
         Time.timeScale = 1.0f;
     }
 
+
+	public void RequestSFX(string s){
+		audioManager.PlaySFX (s);
+	}
 }

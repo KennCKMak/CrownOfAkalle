@@ -12,7 +12,7 @@ public class UnitSFX : MonoBehaviour {
 	private AudioSource sourceAttack;
 	private AudioSource sourceDamaged;
 
-	public int totalAudioSources = 1;
+	public float totalAudioSources = 1.0f;
 
 	[HideInInspector] public bool sfxIsInitialized = false;
 
@@ -95,7 +95,7 @@ public class UnitSFX : MonoBehaviour {
 	}
 
 	public void GetUnitSimInformation(UnitSim unit, int otherAllies){
-		totalAudioSources = otherAllies*2;
+		totalAudioSources = otherAllies/2;
 		if (unit.isMounted())
 			SetUpWalkClip ("Horsestep");
 		else

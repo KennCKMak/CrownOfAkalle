@@ -176,8 +176,12 @@ public class UnitSim : MonoBehaviour {
 	public void Action(){
 
 		//setting attack dist
-		if (combatType == "Melee")
-			animationRange = range/2;
+		if (combatType == "Melee") {
+			if (range == 1) //melee only
+				animationRange = range / 2;
+			else
+				animationRange = range * 2.5f;
+		}
 		else
 			animationRange = range*2.5f;
 		

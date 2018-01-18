@@ -46,7 +46,7 @@ public class Unit : MonoBehaviour {
 
 	//STATS FOR THE UNIT
 	public enum MeleeWeaponType { None, Sword, Spear, Mace };
-	public enum RangedWeaponType { None, Bow, Crossbow};
+	public enum RangedWeaponType { None, Bow, Crossbow, GodBow };
 
 	[SerializeField]protected int Speed; //How many tiles
 	[SerializeField]protected float remainingMovement;
@@ -375,7 +375,6 @@ public class Unit : MonoBehaviour {
 				game.camManager.CameraStrategy.GetComponent<CameraControl> ().StopFocus ();
 				setState (State.Done);
 				game.click.canClick = true; //longer way to request for click manager
-				unitManager.checkEndTurn();
 			} else if(attacking) {
 				game.camManager.CameraStrategy.GetComponent<CameraControl> ().StopFocus ();
 				setState(State.Attack);

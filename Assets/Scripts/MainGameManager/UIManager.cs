@@ -18,12 +18,16 @@ public class UIManager : MonoBehaviour {
 	public bool helpTextEnabled = true;
 
     public GameObject pauseButton;
+	public GameObject endTurnButton;
 
 	public Text textCurrentTurn;
 	public Text textUnitStats;
 	public Text textHoveredUnitStats;
 	public Text textHelp;
 	public Text textSimToggle;
+
+	public GameObject panelMiddle;
+	public Text textPanelMiddle;
 	// Use this for initialization
 	void Start () {
 		game = GetComponent<GameManager> ();
@@ -39,7 +43,7 @@ public class UIManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown (KeyCode.Escape)) {
+		if (Input.GetKeyDown (KeyCode.Escape) && GameManager.running) {
 			if (game.click.selectedUnit) {
 				game.click.DeselectUnit ();
 				return;
@@ -216,13 +220,25 @@ public class UIManager : MonoBehaviour {
         game.Pause();
         pausePanel.SetActive(GameManager.paused);
 		pauseButton.SetActive(!GameManager.paused);
+		SetEndTurnButton (!GameManager.paused);
     }
+
+	public void SetPauseButton(bool b){
+		pauseButton.SetActive (b);
+	}
 
     public void SwitchLevel(string s)
     {
         try
         {
             SceneManager.LoadScene(s, LoadSceneMode.Single);
+			Time.timeScale = 1.0f;
+			if(s == SceneManager.GetActiveScene().name){
+				AudioManager.instance.StopBGM();
+				AudioManager.instance.PlayBGM("E Pluribus Unum", AudioManager.bgmSongVersion.Stream);
+			}
+			GameManager.paused = false;
+			GameManager.running = true;
         }catch
         {
             Debug.LogWarning("Failed to load scene " + s);
@@ -231,6 +247,11 @@ public class UIManager : MonoBehaviour {
 
 	public void ToggleHelp(){
 		helpTextEnabled = !helpTextEnabled;
+		SetHelpText (helpTextEnabled);
+	}
+
+	public void SetHelpText(bool b){
+		helpPanel.SetActive(b);
 		UpdateHelpText ();
 	}
 
@@ -250,5 +271,18 @@ public class UIManager : MonoBehaviour {
 			game.combat.setSkippingSimulation (true);
 			textSimToggle.text = "Simulation:ON";
 		}
+	}
+
+	public void SetEndTurnButton(bool b){
+		endTurnButton.SetActive (b);
+	}
+
+	public void SetMiddlePanel(bool b){
+		panelMiddle.SetActive (b);
+	}
+
+	public void SetMiddlePanel(bool b, string s){
+		panelMiddle.SetActive (b);
+		textPanelMiddle.text = s;
 	}
 }

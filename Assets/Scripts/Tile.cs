@@ -41,23 +41,45 @@ public class Tile : MonoBehaviour {
 	void OnMouseUp() {
 		//map.ClickEvent (tileX, tileY, this);
 		//map.GeneratePathTo (this);
-		if (EventSystem.current.IsPointerOverGameObject () || GameManager.paused)
+		if (GameManager.paused)
 			return;
+		if (EventSystem.current.IsPointerOverGameObject ()) 
+			if(!checkMouseForHP ())
+				return;
+		
 		clickManager.receiveClick(this);
 	}
 
 	void Update(){
 
+	}
+
+
+
+	void OnMouseEnter(){
+		//Debug.Log (EventSystem.current.currentSelectedGameObject.transform.name);
+		if (EventSystem.current.IsPointerOverGameObject () || GameManager.paused)
+			return;
+
+	
+		
+		if (clickManager.selectedUnit)
+			AudioManager.instance.PlaySFX ("TileHover");
 
 	}
 
 	void OnMouseOver(){
-		if (EventSystem.current.IsPointerOverGameObject () || GameManager.paused)
+		if (GameManager.paused) 
 			return;
+		
+		if (EventSystem.current.IsPointerOverGameObject ())
+			if (!checkMouseForHP ())
+				return;
 		if (clickManager.canClick) {
 			clickManager.SelectTile (this);
 			setOutline (true);
 			if (isOccupied ()) {
+				
 				if (!getOccupyingUnit ().GetComponent<Unit> ().isSelected ()) {
 					getOccupyingUnit ().GetComponent<Unit> ().setOutline (true);
 					clickManager.setHoveredUnit (getOccupyingUnit ());
@@ -65,6 +87,20 @@ public class Tile : MonoBehaviour {
 			}
 		}
 
+	}
+
+	bool checkMouseForHP(){
+		PointerEventData pointer = new PointerEventData (EventSystem.current);
+		pointer.position = Input.mousePosition;
+		List<RaycastResult> raycastResults = new List<RaycastResult> ();
+		EventSystem.current.RaycastAll (pointer, raycastResults);
+		if (raycastResults.Count > 0) {
+			foreach (var go in raycastResults) {
+				if (go.gameObject.tag == "HealthBar")
+					return true;
+			}
+		}
+		return false;
 	}
 
 	void OnMouseExit(){

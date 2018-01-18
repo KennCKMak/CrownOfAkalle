@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 //AudioManager - Screen, UI, BGM stuff
 public class AudioManager : MonoBehaviour {
 
+	string currentSceneName;
 	public bool muteBGM;
 	public bool muteSFX;
 	public BGM[] bgm;
@@ -44,7 +45,7 @@ public class AudioManager : MonoBehaviour {
 			s.source.volume = s.volume;
 			s.source.pitch = s.pitch;
 		}
-
+		currentSceneName = "";
 	}
 
     private void Start()
@@ -60,13 +61,18 @@ public class AudioManager : MonoBehaviour {
     
     public void CheckScene(Scene scene)
     {
+		if (currentSceneName != scene.name) {
+			StopBGM ();
+		} else
+			return;
+
+		currentSceneName = SceneManager.GetActiveScene ().name;
         switch (scene.name)
         {
             case "MainGame"://test
                 PlayBGM("E Pluribus Unum", bgmSongVersion.Stream);
-                FindObjectOfType<GameManager>().audioManager = this;
                 return;
-            case "MainMenu"://main menu
+			case "MainMenu"://main menu
                 PlayBGM("Camelot", bgmSongVersion.Stream);
                 return;
             default:
@@ -76,24 +82,25 @@ public class AudioManager : MonoBehaviour {
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name != SceneManager.GetActiveScene().name)
-            StopBGM();
         CheckScene(scene);
     }
 
     public void PlaySFX(string soundName){
-        if (muteBGM)
+        if (muteSFX)
             return;
 		Sound s = Array.Find (sfx, sound => sound.name == soundName);
 		if (s == null)
 			Debug.LogWarning ("Sound: " + soundName + " was not found");
-		else
+		else {
 			s.source.Play ();
+			//Debug.Log ("Playing " + soundName);
+		}
 	}
 
 
 	public void PlayBGM(string bgmName, bgmSongVersion songType)
-    {
+	{
+		bgmSource.time = 0.0f;
         BGM music = Array.Find (bgm, bgm => bgm.name == bgmName);
 		if (music == null)
 			Debug.LogWarning ("BGM: " + bgmName + " was not found");
@@ -116,8 +123,29 @@ public class AudioManager : MonoBehaviour {
 			bgmSource.Stop ();
 	}
 
+	public void PlayBGM(string bgmName)
+	{
+		bgmSource.time = 0.0f;
+		BGM music = Array.Find (bgm, bgm => bgm.name == bgmName);
+		if (music == null)
+			Debug.LogWarning ("BGM: " + bgmName + " was not found");
+		else {
+			currentBGM = music;
+			bgmSource.clip = music.clip1;
+			bgmSource.volume = music.volume1;
+			bgmSource.pitch = music.pitch1;
+
+			bgmSource.loop = true;
+			bgmSource.Play ();
+		}
+
+		if (muteBGM)
+			bgmSource.Stop ();
+	}
+
 	public void PlayBGM(){
 
+		bgmSource.time = 0.0f;
 		if (muteBGM) {
 			bgmSource.Stop ();
 			return;
@@ -216,11 +244,13 @@ public class AudioManager : MonoBehaviour {
 	}
 
 	public void ToggleMuteBGM(){
-		muteBGM = !muteBGM;
-		if (!muteBGM)
-			StopBGM();
-		else
-			PlayBGM();
+		if (!muteBGM) {
+			muteBGM = true;
+			StopBGM ();
+		} else {
+			muteBGM = false;
+			PlayBGM ();
+		}
 	}
 
 	public void ToggleMuteSFX(){
