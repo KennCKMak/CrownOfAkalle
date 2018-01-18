@@ -23,6 +23,7 @@ public class UIManager : MonoBehaviour {
 	public Text textUnitStats;
 	public Text textHoveredUnitStats;
 	public Text textHelp;
+	public Text textSimToggle;
 	// Use this for initialization
 	void Start () {
 		game = GetComponent<GameManager> ();
@@ -38,8 +39,15 @@ public class UIManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown (KeyCode.Escape))
+		if (Input.GetKeyDown (KeyCode.Escape)) {
+			if (game.click.selectedUnit) {
+				game.click.DeselectUnit ();
+				return;
+			}
+			if (game.camManager.getCameraState () == CameraManager.CameraState.Simulation)
+				return;
 			PauseButton ();
+		}
 	}
 
 	public void SpawnUnits(){
@@ -125,8 +133,7 @@ public class UIManager : MonoBehaviour {
 
 				string words;
 
-				words = "Unit: " + unit.gameObject.name;
-				words.Remove (words.Length - 7 + 6);
+				words = "Unit: <b>" + unit.gameObject.name + "</b>";
 
 				words += "\nHealth: " + unit.getHealth () + "/" + unit.getMaxHealth () + "\n";
 				words += "Unit Size: " + unit.getUnitSize () + "/" + unit.getMaxUnitSize () + "\n";
@@ -176,15 +183,14 @@ public class UIManager : MonoBehaviour {
 			"Left-click on a blue soldier to select it \n" +
 			"End your turn with the End Turn button";
 
-			Debug.Log ("Switched text");
 			break;
 		case HelpTextState.ChooseMove:
-			text = "Left-Click on a blue tile to move your unit \n\n" + "Right-click to deselect your unit";
+			text = "\n\nLeft-Click on a blue tile to move your unit \n\n" + "Right-click to deselect your unit";
 			break;
 		case HelpTextState.ChooseAction:	
 			text = "Left-Click on a red tile to attack that unit \n" +
-				"Left-Click on a blue tile to move the unit without attacking \n\n" +
-				"Right-Click to cancel and choose movement tile";
+				"Left-Click on your unit again to move the unit without attacking \n\n" +
+				"Right-Click to cancel and rechoose movement tile";
 			break;
 		default:
 			break;
@@ -208,8 +214,8 @@ public class UIManager : MonoBehaviour {
     public void PauseButton()
     {
         game.Pause();
-        pausePanel.SetActive(game.paused);
-        pauseButton.SetActive(!game.paused);
+        pausePanel.SetActive(GameManager.paused);
+		pauseButton.SetActive(!GameManager.paused);
     }
 
     public void SwitchLevel(string s)
@@ -230,5 +236,19 @@ public class UIManager : MonoBehaviour {
 
 	public void ToggleBGM(){
 		game.audioManager.ToggleMuteBGM ();
+	}
+
+	public void ToggleSFX(){
+		game.audioManager.ToggleMuteSFX ();
+	}
+
+	public void ToggleSimulation(){
+		if (game.combat.isSkippingSimulation ()) {
+			game.combat.setSkippingSimulation (false);
+			textSimToggle.text = "Simulation:OFF";
+		}else{
+			game.combat.setSkippingSimulation (true);
+			textSimToggle.text = "Simulation:ON";
+		}
 	}
 }

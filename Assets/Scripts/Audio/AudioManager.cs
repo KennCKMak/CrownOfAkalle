@@ -8,7 +8,8 @@ using UnityEngine.SceneManagement;
 //AudioManager - Screen, UI, BGM stuff
 public class AudioManager : MonoBehaviour {
 
-    public bool mute;
+	public bool muteBGM;
+	public bool muteSFX;
 	public BGM[] bgm;
 	public Sound[] sfx;
 	public static AudioManager instance;
@@ -26,9 +27,9 @@ public class AudioManager : MonoBehaviour {
 	public BGM currentBGM = null;
 
 	void Awake () {
-	    if (instance == null)
+		if (instance == null){
 			instance = this;
-		else{
+		} else {
 			Destroy (gameObject);
 			return;
 		}
@@ -61,7 +62,7 @@ public class AudioManager : MonoBehaviour {
     {
         switch (scene.name)
         {
-            case "Test"://test
+            case "MainGame"://test
                 PlayBGM("E Pluribus Unum", bgmSongVersion.Stream);
                 FindObjectOfType<GameManager>().audioManager = this;
                 return;
@@ -81,7 +82,7 @@ public class AudioManager : MonoBehaviour {
     }
 
     public void PlaySFX(string soundName){
-        if (mute)
+        if (muteBGM)
             return;
 		Sound s = Array.Find (sfx, sound => sound.name == soundName);
 		if (s == null)
@@ -111,13 +112,13 @@ public class AudioManager : MonoBehaviour {
 				bgmSource.Play ();
 		}
 
-		if (mute)
+		if (muteBGM)
 			bgmSource.Stop ();
 	}
 
 	public void PlayBGM(){
 
-		if (mute) {
+		if (muteBGM) {
 			bgmSource.Stop ();
 			return;
 		}
@@ -150,7 +151,7 @@ public class AudioManager : MonoBehaviour {
 			bgmSource.time = (currentTime / currentLength) * currentBGM.clip1.length;
 
 		}
-		if (mute) {
+		if (muteBGM) {
 			bgmSource.Stop ();
 			return;
 		}
@@ -193,7 +194,7 @@ public class AudioManager : MonoBehaviour {
 			bgmSource.time = (currentTime / currentLength) * currentBGM.clip1.length;
 
 		}
-		if (mute) {
+		if (muteBGM) {
 			bgmSource.Stop ();
 			return;
 		}
@@ -215,10 +216,14 @@ public class AudioManager : MonoBehaviour {
 	}
 
 	public void ToggleMuteBGM(){
-		mute = !mute;
-		if (!mute)
+		muteBGM = !muteBGM;
+		if (!muteBGM)
 			StopBGM();
 		else
 			PlayBGM();
+	}
+
+	public void ToggleMuteSFX(){
+		muteSFX = !muteSFX;
 	}
 }

@@ -141,13 +141,15 @@ public class UnitManager : MonoBehaviour {
 		if(mapManager.tileArray[x,y].isOccupied())
 			return;
 		
-
 		int newID;
 		bool loopRunning = true;
 		while (loopRunning == true) {
 			newID = Random.Range (0, ArraySize);
 			if (unitObjArray [newID] == null) {
 				GameObject newUnit = Instantiate (getAssociatedPrefab (unitName));
+				string tempName = unitName.ToString ();
+				newUnit.transform.name = tempName.Substring(0, tempName.Length-4);
+
 				Unit unitScript = newUnit.GetComponent<Unit> ();
 				//Tile values
 				unitScript.setTileX (x);

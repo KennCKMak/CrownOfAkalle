@@ -496,6 +496,10 @@ public class Unit : MonoBehaviour {
 	public void CreateHealthBar(){
 		GameObject newHealthBar = Instantiate (HealthBarPrefab) as GameObject;
 		newHealthBar.transform.SetParent(game.ui.canvas.transform);
+
+		//used so it's rendered 'first', i.e. at the back
+		newHealthBar.transform.SetAsFirstSibling (); 
+
 		newHealthBar.GetComponent<HealthBar> ().SetTarget (this.transform);
 		newHealthBar.GetComponent<HealthBar> ().hpCamera = game.camManager.CameraStrategy;
 		healthBar = newHealthBar.GetComponent<HealthBar> ();

@@ -20,7 +20,6 @@ public class invisObjScript : MonoBehaviour {
 
 	public void setFollowTarget(GameObject target){
 		transform.position = target.transform.position;
-		Debug.Log ("Spawning at " + target.transform.position);
 		followTarget = target;
 	}
 

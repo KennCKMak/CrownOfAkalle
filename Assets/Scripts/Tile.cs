@@ -1,10 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Tile : MonoBehaviour {
 
-
+	public GameManager game;
 	public ClickManager clickManager;
 	public MapManager map;
 	public int tileX;
@@ -40,6 +41,8 @@ public class Tile : MonoBehaviour {
 	void OnMouseUp() {
 		//map.ClickEvent (tileX, tileY, this);
 		//map.GeneratePathTo (this);
+		if (EventSystem.current.IsPointerOverGameObject () || GameManager.paused)
+			return;
 		clickManager.receiveClick(this);
 	}
 
@@ -49,6 +52,8 @@ public class Tile : MonoBehaviour {
 	}
 
 	void OnMouseOver(){
+		if (EventSystem.current.IsPointerOverGameObject () || GameManager.paused)
+			return;
 		if (clickManager.canClick) {
 			clickManager.SelectTile (this);
 			setOutline (true);

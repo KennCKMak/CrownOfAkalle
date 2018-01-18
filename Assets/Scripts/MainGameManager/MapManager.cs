@@ -57,7 +57,7 @@ public class MapManager : MonoBehaviour {
 		unitSpawnData = new List<UnitSpawnData> ();
 
 		GenerateMap ();
-		CreateUnits ();
+		Invoke ("CreateUnits", 0.04f);
 
     }
 
@@ -179,6 +179,7 @@ public class MapManager : MonoBehaviour {
 
 	void CreateUnits(){
 		for (int i = 0; i < unitSpawnData.Count; i++) {
+			Debug.Log ("Creating unit 1");
 			game.unit.CreateUnit (
 				(UnitManager.UnitName)(unitSpawnData[i].unitNum), 
 				unitSpawnData[i].x, 

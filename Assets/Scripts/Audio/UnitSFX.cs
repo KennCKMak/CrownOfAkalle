@@ -62,14 +62,17 @@ public class UnitSFX : MonoBehaviour {
 	}
 
 	public void PlayWalkSFX(){
+		if(!audioManager.muteSFX)
 		sourceWalk.Play ();
 	}
 
 	public void PlayAttackSFX(){
+		if(!audioManager.muteSFX)
 		sourceAttack.Play ();
 	}
 
 	public void PlayDamagedSFX(){
+		if(!audioManager.muteSFX)
 		sourceDamaged.Play ();
 	}
 

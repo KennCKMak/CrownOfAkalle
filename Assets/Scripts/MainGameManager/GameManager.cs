@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour {
 
 	[HideInInspector] public AudioManager audioManager;
 
-    public bool paused;
+    public static bool paused;
 
 
 	// Use this for initialization
@@ -30,12 +30,11 @@ public class GameManager : MonoBehaviour {
 		turn = GetComponent<TurnManager> ();
 		ui = GetComponent<UIManager> ();
         AI = GetComponent<AIManager>();
-		
 	}
 
     void Start()
     {
-        Time.timeScale = 3.0f;
+        Time.timeScale = 1.0f;
 
         //Invoke("SpawnUnits", 0.5f);
     }
@@ -47,7 +46,7 @@ public class GameManager : MonoBehaviour {
 
     void Update() {
 
-		Time.timeScale = timeScale;
+		//Time.timeScale = timeScale;
 
         if (Input.GetMouseButtonDown(1))
             click.DeselectUnit();

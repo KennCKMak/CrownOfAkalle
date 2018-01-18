@@ -91,6 +91,8 @@ public class AIManager : MonoBehaviour {
     {
         //if there is still a unit we can use...
 		if (active) {
+			if (GameManager.paused)
+				return;
             //active, we have no unit, and we can click to choose a unit
             if (!selectedUnit && canClick)
             {

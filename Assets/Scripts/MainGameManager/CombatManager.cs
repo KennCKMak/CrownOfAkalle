@@ -265,6 +265,10 @@ public class CombatManager : MonoBehaviour {
 			}
 		}
 		game.camManager.CameraSimulation.GetComponent<CameraControl> ().FollowTarget (camHolder);
+		Vector3 newLoc = game.camManager.CameraSimulation.transform.position;
+		newLoc.x = game.simPlane.transform.position.x;
+		game.camManager.CameraSimulation.transform.position = newLoc;
+
 		elapsedTime = 0.0f;
 		simState = SimulationState.Intro;
 		game.audioManager.SwitchBGMTo (AudioManager.bgmSongVersion.Rage);
