@@ -127,15 +127,19 @@ public class MapManager : MonoBehaviour {
 	}
 
 	void LoadFile (string s) {
-		if (!File.Exists ("Assets/Assets/MapData/"+s+".txt")) {
+		TextAsset textFile= (TextAsset)Resources.Load ("MapData/" + s);
+		/*if (!File.Exists ("Assets/Assets/MapData/"+s+".txt")) {
 			Debug.Log ("File " + s + " does not exist.");
 			if(s != "Default")
 				LoadFile ("Default");
 			GenerateDefaultMapData();
 			return;
-		}
-
-		StreamReader reader = new StreamReader ("Assets/Assets/MapData/" + s + ".txt");
+		}*/
+		if (!textFile)
+			textFile = (TextAsset)Resources.Load ("MapData/Default");
+		//else
+			//Debug.Log (textFile.text);
+		StringReader reader = new StringReader (textFile.text);
 		Int32.TryParse (reader.ReadLine (), out mapSizeX);
 		Int32.TryParse (reader.ReadLine (), out mapSizeY);
 

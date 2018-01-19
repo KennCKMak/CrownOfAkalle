@@ -13,6 +13,7 @@ public class UIManager : MonoBehaviour {
     public GameObject panelRight;
     public GameObject pausePanel;
 	public GameObject helpPanel;
+	public GameObject simHelpPanel;
 	public enum HelpTextState { None, ChooseUnit, ChooseMove, ChooseAction };
 	public HelpTextState helpTextState = HelpTextState.ChooseUnit;
 	public bool helpTextEnabled = true;
@@ -252,6 +253,7 @@ public class UIManager : MonoBehaviour {
 
 	public void SetHelpText(bool b){
 		helpPanel.SetActive(b);
+		simHelpPanel.SetActive (b);
 		UpdateHelpText ();
 	}
 

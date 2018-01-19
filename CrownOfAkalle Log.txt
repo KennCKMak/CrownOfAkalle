@@ -15,11 +15,12 @@ ALPHA												23 HOURS
 13/12/2017	Wed		15:05-16:30	17:00-19:30	20:50-05:55			13
 14/12/2017	Thu		13:30-14:55							1.5
 
-FINAL PRODUCT											17 1/6 hours
+FINAL PRODUCT											17 1/2 hours
 19/12/2017	Tue		09:00-14:00							5.0
 12/01/2017	Fri		20:15-23:05							2 5/6
 17/01/2017	Wed		15:00-18:40	20:30-02:10					9 1/3
-						Total Hours: 75.00 hours
+18/01/2017	Thu		12:00-14:20							2 1/3
+						Total Hours: 75.33 hours
 
 TODO: 
 A menu that pops up when you arrive at a location (Attack, Wait)
@@ -33,7 +34,13 @@ Pause Screen
 Terrain placement for ramps and stuff?
 MapBuilding - better ui, fluidity
 
-Make the simulation plain have better terrain/flora/details and texture tiling
+FINAL TIPS:
+Control camera w/ Left(drag) & Right(turn)
+focus at is hard to use at far units
+When zoomed in, clicking on a unit clicks the tile behind them...
+Simulation:ON/OFF not working
+Better lighting in general, esp the simulation
+Consider pairing up with an Artist to make things polished for portfolio
 
 
 
@@ -169,3 +176,10 @@ Make the simulation plain have better terrain/flora/details and texture tiling
 - Can click through Health Bar UI
 - Better application of AudioManager instance
 - AudioManager plays songs at Beginning
+
+
+17-01-2018 - Wed - 20:30
+- Attempted to fix instance variables carrying over
+- text file is located in Resources
+- MapData ready via Resource.Load 
+- Default map now has walls surrounding the area

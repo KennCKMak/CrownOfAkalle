@@ -1,0 +1,42 @@
+Initialize engine version: 5.5.4p4 (e92bef0ab5a4)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: Intel(R) HD Graphics 4000 (ID=0x166)
+    Vendor:   Intel
+    VRAM:     912 MB
+    Driver:   10.18.10.4358
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
+Loading C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
+- Completed reload, in  0.044 seconds
+Platform assembly: C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: C:\Users\Kenneth\Documents\GitHub\CrownOfAkalle\FINAL\Crown of Akalle FINAL_Data\Managed\System.dll (this message is harmless)
+desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+UnloadTime: 1.146553 ms
+Setting up 2 worker threads for Enlighten.
+  Thread -> id: 2434 -> priority: 1 
+  Thread -> id: e54 -> priority: 1 
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 6.722928 ms
+
+Unloading 32 unused Assets to reduce memory usage. Loaded Objects now: 2085.
+Total: 0.934446 ms (FindLiveObjects: 0.086015 ms CreateObjectMapping: 0.079173 ms MarkObjects: 0.704744 ms  DeleteObjects: 0.064023 ms)
+
+Unloading 4 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 5.015805 ms
+
+Unloading 1431 unused Assets to reduce memory usage. Loaded Objects now: 715.
+Total: 1.144109 ms (FindLiveObjects: 0.061090 ms CreateObjectMapping: 0.074775 ms MarkObjects: 0.412485 ms  DeleteObjects: 0.595269 ms)
+
